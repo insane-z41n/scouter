@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 const Position = props => {
     const {playersInPosition, positionGroup, currentRound} = props;
     console.log(`Loading Poisition ${positionGroup} Card for round ${currentRound}...`);
-    console.log('Players: ', playersInPosition);
     const [getPlayers, setPlayers] = useState(playersInPosition);
     useEffect(() => {
         setPlayers(playersInPosition);

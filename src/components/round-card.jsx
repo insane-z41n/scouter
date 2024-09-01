@@ -3,8 +3,7 @@ import Position from "./position-card";
 
 const RoundCard = props => {
     console.log('Loading Round Card...');
-    const {players, roundNumber, positions} = props
-    console.log(`Round ${roundNumber} Card Players: `, players);
+    const {roundNumber, positions} = props
     let size = 12/positions.length;
     
     return(

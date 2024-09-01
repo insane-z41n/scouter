@@ -1,21 +1,16 @@
 import RoundCard from "./round-card";
-import { useEffect, useState } from "react";
-import { connect, useSelector } from "react-redux";
+import { connect } from "react-redux";
 
 
 const Rounds = props => {
     console.log('Loading Rounds...');
-    const {numOfRounds} = props;
-    const {rounds, playerPool} = useSelector(state => state.playerPool);
+    const {numOfRounds, playerPool} = props;
     const positions = Object.keys(playerPool);
     
-    console.log('Players: ', rounds);
-    console.log('Rounds: ', numOfRounds);
     return (
         <div>
             {numOfRounds.map((r) => (
                 <RoundCard
-                    players={rounds[r]}
                     roundNumber={r}
                     positions={positions}
                     key={`Round-${r}`}
@@ -26,10 +21,11 @@ const Rounds = props => {
 
 };
 const mapStateToProps = state => {
-    const {rounds} = state.playerPool;
+    const {rounds, playerPool} = state.playerPool;
     const numOfRounds = Object.keys(rounds) || [];
     return {
-        numOfRounds
+        numOfRounds,
+        playerPool: playerPool
     };
 };
 export default connect(mapStateToProps) (Rounds);
