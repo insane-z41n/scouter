@@ -1,19 +1,20 @@
-
-import { Card, CardContent, Checkbox, FormControl, FormControlLabel, Grid, MenuItem, TextField, Typography } from '@mui/material';
+import { Card, CardContent, Checkbox, FormControl, FormControlLabel, Grid, MenuItem, Select, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { roundUpdate } from '../redux/player-pool';
+import { useTheme } from '@emotion/react';
+
 const getPositionsFormatted = (player) => {
     let positions = "";
-    player.positions.forEach(pos => {
-        positions+=`${pos} | `;
+    player.fantasyPositions.forEach(pos => {
+        positions+=`${pos} \n`;
     })
     return positions = positions.substring(0, positions.length-2);
 };
 const PlayerCard = props => { 
+    const theme = useTheme();
     const dispatch = useDispatch();
     const {player, currentRound, getPlayers, setPlayers} = props;
     
-    // console.log(`Loading Player Card ${player.full_name}...`);
     const onDraftedChange = (event) => {
         const isDrafted = event.target.checked;
         const index = getPlayers.indexOf(player);
@@ -36,78 +37,78 @@ const PlayerCard = props => {
     
 
     return (
-        <Card sx={{minHeight: 300, maxBlockSize: 300, minWidth: 210, border:2}}>
+        <Card sx={{minHeight: 300, maxBlockSize: 300, minWidth: 210, border: 2, borderColor: theme.palette.secondary.main}}>
             <CardContent sx={{minHeight: 300, maxBlockSize: 300, minWidth: 210}}>
                 <Grid container>   
-
                     <Grid sx={{justifyContent: 'space-between'}} container>
-                        <Grid item>
-                            <Typography sx={{fontFamily: 'Monospace'}} align='left'>
+                        <Grid item sx={{maxWidth:20}}>
+                            <Typography sx={{fontFamily: 'Monospace', fontSize: 12 }} align='left'>
                                 {getPositionsFormatted(player)}
                             </Typography>
                         </Grid>
                         <Grid item>
-                            <TextField
+                            <Select
+                                variant='outlined'
                                 id={`outlined-round-selections-${player.playerId}`}
-                                select
-                                label="Select"
-                                defaultValue={player.roundEval}
-                                helperText="Round"
+                                value={roundOptions.includes(player.roundEval) ? player.roundEval : 0}
                                 size="small"
-                                name={`${player.playerId}`}
                                 key={`select-round-field-${player.playerId}`}
                                 onChange={(e) => dispatch(roundUpdate({player, currentRound, selectedRound: `${e.target.value}`}))}
+                                sx={{borderColor: theme.palette.primary.main, border: 1}}
                                 >
                                 {roundOptions.map((option) => (
                                     <MenuItem key={option} value={option}>
-                                        {option}
+                                        {(option === 0) ? 'Player Pool' : 'Round ' + option}
                                     </MenuItem>
                                 ))}
-                            </TextField>
+                            </Select>
                         </Grid>
+                        {/*Ranking Information*/}
                         <Grid item>
-                            <Typography fontSize={12} align='right'>
-                                Rank
+                            <Typography variant="stat_info" fontSize={12} align='right'>
+                                ADP
                             </Typography>   
                             <Typography fontSize={12} align ='center'>
-                                {player.prevYearStats.ranking}
+                                {player.projectedStats.adp}
                             </Typography>
                         </Grid>
                     </Grid>
 
                     <Grid container >
+                        {/*Player Information*/}
                         <Grid sm={12} paddingTop={3} paddingBottom={3} item>
                             <Typography sx={{fontWeight: 'bold'}} align='center'>
-                                {(player.full_name) ? player.full_name : player.team} 
+                                {(player.name) ? player.name : player.team} 
                             </Typography>
                         </Grid>
-
+                        
+                        {/*Player Stats*/}
                         <Grid container paddingBottom={1.5} alignItems="baseline">
                             <Grid sm={6} item>
                                 <Typography sx={{fontSize: 12}} align='left'>
                                     Projected: 
                                 </Typography>
                                 <Typography align='left'>
-                                    {player.projectedStats.pointsHalfPpr} pts
+                                    {player.projectedStats.points} pts
                                 </Typography>
                             </Grid>
                             <Grid sm={6} item>
                                 <Typography align='right'  sx={{fontSize: 12}}>
-                                    {(player.full_name) ? 'Depth: ' : ' - '}
+                                    {(player.name) ? 'Depth: ' : ' - '}
                                 </Typography>
                                 <Typography align='right'>
-                                    {player.depthChartOrder}
+                                    {player.depthChart}
                                 </Typography>
                             </Grid>
                         </Grid>
                         
-                        <Grid paddingTop={1.5} sx={{borderTop: 1}} container>
+                        <Grid paddingTop={1.5} sx={{borderTop: 1, borderColor: theme.palette.primary.main}} container>
                             <Grid sm={6} item>
                                 <Typography sx={{display:'flex', fontSize:12}}>
                                     {player.prevYearStats.year}:
                                 </Typography>
                                 <Typography sx={{display: 'flex'}}>
-                                    {(player.prevYearStats.pointsHalfPpr === '-') ? 0 : player.prevYearStats.pointsHalfPpr} pts
+                                    {(player.prevYearStats.points === '-') ? 0 : player.prevYearStats.points} pts
                                 </Typography>
                                 <Typography sx={{display: 'flex'}}>
                                     {(player.prevYearStats.gamesPlayed === '-') ? 0 : player.prevYearStats.gamesPlayed} GP
@@ -117,7 +118,7 @@ const PlayerCard = props => {
                             <Grid sm={6} item>
                                 <Grid sm={12} item>
                                     <Typography align='right'>
-                                        {(player.full_name) ? player.team : ' - '}
+                                        {(player.name) ? player.team : ' - '}
                                     </Typography>
                                 </Grid>
                                 <Grid sm={12} alignItems={'flex-end'} item>
@@ -138,10 +139,8 @@ const PlayerCard = props => {
                             </Grid>
                         </Grid>
                     </Grid>
-                
                 </Grid>
             </CardContent>
-            
         </Card>
     );
 }

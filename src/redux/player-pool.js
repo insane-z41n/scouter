@@ -1,11 +1,13 @@
-import { createSlice } from "@reduxjs/toolkit";
-import players from '../db/draft-db.json';
+import { createSlice, current } from "@reduxjs/toolkit";
+import { getDraftBoard } from "../services/scouter-get-draftboard.js";
 
-const playerPool = players['player-pool'];
-const rounds = Object.keys(players)
+const draftBoard = await getDraftBoard('draft_board_nfl', 'nfl'); // Replace with actual scouterId and sport
+console.log(draftBoard);
+const playerPool = draftBoard.rounds['player-pool'];
+const rounds = Object.keys(draftBoard.rounds)
     .filter(k => !['player-pool'].includes(k))
     .reduce((obj, k) => {
-        obj[k] = players[k];
+        obj[k] = draftBoard.rounds[k];
         return obj;
     }, {});
 
@@ -23,8 +25,9 @@ const isRoundEmpty = (roundPlayers) => {
 const addPlayerToSelectedRound = (state, action) => {
     let player = {...action.payload.player};
     const selectedRound = (action.payload.selectedRound === "0") ?  'player-pool' : action.payload.selectedRound;
-    const position = player.positions[0];
+    const position = player.position;
     console.log(`Adding player to Round ${selectedRound}`);
+    console.log(JSON.parse(JSON.stringify(state)));
     
     // Change players round evaluation.
     player.roundEval = (selectedRound === 'player-pool') ? 0 : selectedRound;
@@ -38,11 +41,15 @@ const addPlayerToSelectedRound = (state, action) => {
     else {
         // Add round to rounds object
         if(!state.rounds[selectedRound] || Object.keys(state.rounds[selectedRound]).length === 0) {
-            const newRoundObject = {[selectedRound]: {'QB': [], 'RB': [], 'WR': [], 'TE': [], 'DEF': [], 'K': []}};
+            const newRoundObject = {[selectedRound]: {'PG': [], 'SG': [], 'SF': [], 'PF': [], 'C': []}};
             Object.assign(state.rounds, newRoundObject);
         }
+        // Ensure position array exists
+        if (!Array.isArray(state.rounds[selectedRound][position])) {
+            state.rounds[selectedRound][position] = [];
+        }
         // Add player to the beginning of the round. 
-        let playersInPosition = [...state.rounds[selectedRound][position]];;
+        let playersInPosition = [...state.rounds[selectedRound][position]];
         playersInPosition.unshift(player);
         state.rounds[selectedRound][position] = playersInPosition;
     }
@@ -51,7 +58,7 @@ const addPlayerToSelectedRound = (state, action) => {
 const removePlayerFromCurrentRound = (state, action) => {
     const player = {...action.payload.player};
     const currentRound = (action.payload.currentRound === "0") ?  'player-pool' : action.payload.currentRound;
-    const position = player.positions[0];
+    const position = player.position;
     console.log(`Removing player from Round ${currentRound}`);
 
     // remove player from current player pool
@@ -84,7 +91,7 @@ export const playerPoolReducer = createSlice({
     reducers: {
         roundUpdate: (state, action) => {
             let player = action.payload.player;
-            const position = player.positions[0];
+            const position = player.position;
             const currentRound = action.payload.currentRound;
             const selectedRound = (action.payload.selectedRound === "0") ?  'player-pool' : action.payload.selectedRound;
 
@@ -96,11 +103,22 @@ export const playerPoolReducer = createSlice({
             // add player to selected round
             removePlayerFromCurrentRound(state, action);
             addPlayerToSelectedRound(state, action);
+        },
+        saveDraft: (state, action) => {
+            console.log("Save State: ", current(state));
+        },
+        REORDER_PLAYERS_IN_POSITION: (state, action) => {
+            const { positionGroup, currentRound, newOrder } = action.payload;
+            if(currentRound === 'player-pool') {
+                state.playerPool[positionGroup] = newOrder;
+            } else {
+                state.rounds[currentRound][positionGroup] = newOrder;
+            }
         }
     }
 
 });
 
-export const {roundUpdate} = playerPoolReducer.actions;
+export const {roundUpdate, saveDraft, REORDER_PLAYERS_IN_POSITION} = playerPoolReducer.actions;
 export default playerPoolReducer.reducer;
 

@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import RoundCard from "./round-card";
 import { connect } from "react-redux";
 
@@ -5,10 +6,11 @@ import { connect } from "react-redux";
 const Rounds = props => {
     console.log('Loading Rounds...');
     const {numOfRounds, playerPool} = props;
+    console.log(playerPool);
     const positions = Object.keys(playerPool);
     
     return (
-        <div>
+        <Box>
             {numOfRounds.map((r) => (
                 <RoundCard
                     roundNumber={r}
@@ -16,7 +18,7 @@ const Rounds = props => {
                     key={`Round-${r}`}
                 />
             ))}
-        </div>
+        </Box>
     );
 
 };
