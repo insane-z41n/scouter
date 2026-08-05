@@ -1,15 +1,13 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './app.jsx';
 import reportWebVitals from './reportWebVitals.js';
-import store from './redux/store.js';
-import { Provider } from 'react-redux';
+import dotenv from "dotenv/config";
+
+const API_DOMAIN = process.env.DOMAIN;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <App />
 );
 
 // If you want to start measuring performance in your app, pass a function
