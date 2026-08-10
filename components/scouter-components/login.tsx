@@ -19,6 +19,7 @@ export function Login() {
     const loginSubmitAction = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log("Login form submitted - Event:", event);
+        router.push('/home');
     }
     const registerOnClickAction = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();

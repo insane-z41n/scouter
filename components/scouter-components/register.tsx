@@ -15,9 +15,9 @@ import { useRouter } from "next/navigation"
 export function Register() {
   const router = useRouter();
   const backToLoginOnClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        console.log("Register button clicked - Event:", event);
-        router.push('/login');
+    event.preventDefault();
+    console.log("Register button clicked - Event:", event);
+    router.push('/login');
   }
   return (
     <Card className="w-full max-w-sm">
