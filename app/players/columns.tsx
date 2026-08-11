@@ -6,6 +6,13 @@ import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogPopup,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -29,6 +36,27 @@ export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
     return Array.from(new Set(players.map((p) => p.position))).sort();
 };
 
+function PlayerNameCell({ player }: { player: PlayerTableData }) {
+    return (
+        <Dialog>
+            <DialogTrigger render={<Button variant="link" className="h-auto p-0" />}>
+                {player.name}
+            </DialogTrigger>
+            <DialogPopup render={<Card />}>
+                <CardHeader>
+                    <DialogTitle>{player.name}</DialogTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-1 text-sm">
+                    <div>Position: {player.position}</div>
+                    <div>ADP: {player.adp}</div>
+                    <div>Projected Points: {player.projectedPoints}</div>
+                    <div>Previous Year Points: {player.prevYearPoints}</div>
+                </CardContent>
+            </DialogPopup>
+        </Dialog>
+    );
+}
+
 
 
 const columnHelper = createColumnHelper<DataTableFeatures, PlayerTableData>();
@@ -51,7 +79,8 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
             },
         }),
         columnHelper.accessor("name", {
-            header: "Player Name"
+            header: "Player Name",
+            cell: ({ row }) => <PlayerNameCell player={row.original} />,
         }),
         columnHelper.accessor("position", {
             header: ({ column }) => {
