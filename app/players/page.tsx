@@ -10,7 +10,7 @@ export default async function PlayerTablePage() {
     const playerTableData = mapScouterPlayersToPlayerTableData(scouterPlayers);
     return (
         <div>
-            <PlayerTable data={playerTableData} year="2025"/>
+            <PlayerTable data={playerTableData} players={scouterPlayers}/>
         </div>
     )
 };

@@ -1,8 +1,11 @@
-import { 
+import {
     columnFilteringFeature,
     columnVisibilityFeature,
     createFilteredRowModel,
     createSortedRowModel,
+    filterFn_arrHas,
+    filterFn_includesString,
+    filterFn_inNumberRange,
     rowPaginationFeature,
     rowSelectionFeature,
     rowSortingFeature,
@@ -17,6 +20,11 @@ export const features = tableFeatures({
     columnFilteringFeature,
     columnVisibilityFeature,
     filteredRowModel: createFilteredRowModel(),
+    filterFns: {
+        arrHas: filterFn_arrHas,
+        includeString: filterFn_includesString,
+        inNumberRange: filterFn_inNumberRange,
+    },
     rowPaginationFeature,
     rowSelectionFeature,
     rowSortingFeature,
@@ -24,7 +32,7 @@ export const features = tableFeatures({
     sortFns: {
         alphanumeric: sortFn_alphanumeric,
         text: sortFn_text,
-  },
+    },
 });
 
 export type DataTableFeatures = typeof features;

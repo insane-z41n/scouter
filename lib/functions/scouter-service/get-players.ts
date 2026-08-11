@@ -24,8 +24,12 @@ export type ScouterPlayer = {
 }
 
 export async function getScouterPlayers(sport: string): Promise<ScouterPlayer[]> {
+    
+    const url = `${process.env.SCOUTER_API_DOMAIN}/${sport}/players`;
+    
     try {
-        const response = await axios.get<ScouterPlayer[]>(`${process.env.SCOUTER_API_DOMAIN}/${sport}/players`);
+        console.log(`Scouter UI Calling: ${url}`)
+        const response = await axios.get<ScouterPlayer[]>(url);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -38,78 +42,3 @@ export async function getScouterPlayers(sport: string): Promise<ScouterPlayer[]>
         throw error;
     }
 }
-
-const mockScouterPlayers: ScouterPlayer[] = [
-    {
-        "projectedStats": {
-            "adp": 999,
-            "points": 28.72,
-            "year": 2026
-        },
-        "prevYearStats": {
-            "points": 156.66,
-            "year": 2025,
-            "gamesPlayed": 10,
-            "rank": 27
-        },
-        "id": "19",
-        "name": "Joe Flacco",
-        "number": "16",
-        "position": "QB",
-        "fantasyPositions": [
-            "QB"
-        ],
-        "team": "CIN",
-        "depthChart": 2,
-        "experience": 18,
-        "injuryStatus": null
-    },
-    {
-        "projectedStats": {
-            "adp": 999,
-            "points": 177,
-            "year": 2026
-        },
-        "prevYearStats": {
-            "points": 234.08,
-            "year": 2025,
-            "gamesPlayed": 15,
-            "rank": 18
-        },
-        "id": "96",
-        "name": "Aaron Rodgers",
-        "number": "8",
-        "position": "QB",
-        "fantasyPositions": [
-            "QB"
-        ],
-        "team": "PIT",
-        "depthChart": 1,
-        "experience": 21,
-        "injuryStatus": null
-    },
-    {
-        "projectedStats": {
-            "adp": 999,
-            "points": 11.34,
-            "year": 2026
-        },
-        "prevYearStats": {
-            "points": 26.38,
-            "year": 2025,
-            "gamesPlayed": 2,
-            "rank": 53
-        },
-        "id": "260",
-        "name": "Josh Johnson",
-        "number": "11",
-        "position": "QB",
-        "fantasyPositions": [
-            "QB"
-        ],
-        "team": "CIN",
-        "depthChart": 3,
-        "experience": 18,
-        "injuryStatus": null
-    },
-];

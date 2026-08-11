@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import * as React from "react"
-import { 
-    useTable, 
+import {
+    useTable,
+    type ColumnFiltersState,
     type SortingState,
 } from "@tanstack/react-table"
 import {
@@ -16,27 +17,33 @@ import {
 } from "@/components/ui/table"
 
 import { features } from "./player-table-features"
-import { getColumns, PlayerTableData } from "./columns"
+import { getColumns, getPlayerPositions, PlayerTableData } from "./columns"
+import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 
 
 export function PlayerTable({
   data,
-  year
-}: {data: PlayerTableData[]; year: string}) {
-    const columns = getColumns(year)
+  players,
+}: {data: PlayerTableData[]; players: ScouterPlayer[]}) {
+    const positions = React.useMemo(() => getPlayerPositions(players), [players])
+    const columns = React.useMemo(() => getColumns(players, positions), [players, positions])
     const [sorting, setSorting] = React.useState<SortingState>([
         {
             id: 'adp',
             desc: false,
         }
     ]);
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
     const table = useTable({
-        features,
-        data,
         columns,
+        data,
+        features,
+        manualFiltering: false,
+        onColumnFiltersChange: setColumnFilters,
         onSortingChange: setSorting,
         state: {
+            columnFilters,
             sorting,
         }
     })
@@ -45,6 +52,7 @@ export function PlayerTable({
         <div>
             <div>
                 <Table>
+                    {/** Mapping Heders for player table */}
                     <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
@@ -60,27 +68,28 @@ export function PlayerTable({
                         </TableRow>
                     ))}
                     </TableHeader>
+
                     <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map((row) => (
-                        <TableRow
-                            key={row.id}
-                            data-state={row.getIsSelected() && "selected"}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                                <table.FlexRender cell={cell} />
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                    <table.FlexRender cell={cell} />
+                                </TableCell>
+                                ))}
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                            <TableCell colSpan={columns.length} className="h-24 text-center">
+                                No results.
                             </TableCell>
-                            ))}
-                        </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                            No results.
-                        </TableCell>
-                        </TableRow>
-                    )}
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

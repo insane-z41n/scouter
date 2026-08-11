@@ -1,9 +1,21 @@
 "use client"
 
+import * as React from "react"
+import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
+
 import { createColumnHelper } from "@tanstack/react-table";
-import { DataTableFeatures } from "./player-table-features";
+
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players";
+
+import { DataTableFeatures } from "./player-table-features";
 
 export type PlayerTableData = {
     adp: number,
@@ -13,8 +25,16 @@ export type PlayerTableData = {
     prevYearPoints: number,
 }
 
+export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
+    return Array.from(new Set(players.map((p) => p.position))).sort();
+};
+
+
+
 const columnHelper = createColumnHelper<DataTableFeatures, PlayerTableData>();
-export const getColumns = (prevYear: string) => {
+export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
+
+    const prevYear = players[0].prevYearStats.year;
 
     return columnHelper.columns([
         columnHelper.accessor("adp", {
@@ -34,7 +54,52 @@ export const getColumns = (prevYear: string) => {
             header: "Player Name"
         }),
         columnHelper.accessor("position", {
-            header: "Position"
+            header: ({ column }) => {
+                const selectedPositions = (column.getFilterValue() as string[] | undefined) ?? [];
+                const [isDropDownOpen, setIsDropDownOpen] = React.useState(false);
+
+                const togglePosition = (position: string, checked: boolean) => {
+                    
+                    column.setFilterValue((current: string[] | undefined) => {
+                        const currentPositions = current ?? [];
+                        return checked
+                            ? [...currentPositions, position]
+                            : currentPositions.filter((p) => p !== position);
+                    });
+                };
+
+
+                return (
+                    <DropdownMenu open={isDropDownOpen} onOpenChange={setIsDropDownOpen}>
+                        <DropdownMenuTrigger
+                            render={
+                                <Button variant="ghost">
+                                    Position
+                                    {
+                                        isDropDownOpen ? (
+                                            <ChevronUp className="ml-2 h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        )
+                                    }
+                                </Button>
+                            }
+                        />
+                        <DropdownMenuContent side="top">
+                            {positions.map((position) => (
+                                <DropdownMenuCheckboxItem
+                                    key={position}
+                                    checked={selectedPositions.includes(position)}
+                                    onCheckedChange={(checked) => togglePosition(position, checked)}
+                                >
+                                    {position}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )
+            },
+            filterFn: "arrHas",
         }),
         columnHelper.accessor("projectedPoints", {
             header: ({ column }) => {
