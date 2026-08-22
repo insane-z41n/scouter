@@ -6,13 +6,7 @@ import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogPopup,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -20,49 +14,30 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players";
+import { getLatestYearEntry, ScouterPlayer } from "@/lib/functions/scouter-service/get-players";
 
 import { DataTableFeatures } from "./player-table-features";
+import { PlayerNameCell } from "@/components/scouter-components/player-stat-card";
 
 export type PlayerTableData = {
+    id: string,
     adp: number,
     name: string,
     position: string,
+    team: string,
     projectedPoints: number,
     prevYearPoints: number,
 }
 
 export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
-    return Array.from(new Set(players.map((p) => p.position))).sort();
+    return Array.from(new Set(players.flatMap((p) => p.playerInfo.primaryPosition))).sort();
 };
 
-function PlayerNameCell({ player }: { player: PlayerTableData }) {
-    return (
-        <Dialog>
-            <DialogTrigger render={<Button variant="link" className="h-auto p-0" />}>
-                {player.name}
-            </DialogTrigger>
-            <DialogPopup render={<Card />}>
-                <CardHeader>
-                    <DialogTitle>{player.name}</DialogTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-1 text-sm">
-                    <div>Position: {player.position}</div>
-                    <div>ADP: {player.adp}</div>
-                    <div>Projected Points: {player.projectedPoints}</div>
-                    <div>Previous Year Points: {player.prevYearPoints}</div>
-                </CardContent>
-            </DialogPopup>
-        </Dialog>
-    );
-}
-
-
-
 const columnHelper = createColumnHelper<DataTableFeatures, PlayerTableData>();
-export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
 
-    const prevYear = players[0].prevYearStats.year;
+export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
+    const latestPreviousYear = getLatestYearEntry(players[0]?.previousStats);
+    const playersById = new Map(players.map((p) => [p._id, p]));
 
     return columnHelper.columns([
         columnHelper.accessor("adp", {
@@ -80,7 +55,20 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
         }),
         columnHelper.accessor("name", {
             header: "Player Name",
-            cell: ({ row }) => <PlayerNameCell player={row.original} />,
+            cell: ({ row }) => {
+                const player = playersById.get(row.original.id);
+                if (!player) return null;
+                return (<PlayerNameCell player={player} />);
+            },
+        }),
+        columnHelper.accessor("team", {
+            header: ({ column }) => {
+                return (
+                    <div>
+                        Team
+                    </div>
+                );
+            },
         }),
         columnHelper.accessor("position", {
             header: ({ column }) => {
@@ -102,7 +90,7 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
                     <DropdownMenu open={isDropDownOpen} onOpenChange={setIsDropDownOpen}>
                         <DropdownMenuTrigger
                             render={
-                                <Button variant="ghost">
+                                <Button variant="ghost"> 
                                     Position
                                     {
                                         isDropDownOpen ? (
@@ -150,7 +138,7 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
                         variant='ghost'
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     >
-                        {prevYear} PTS
+                        {latestPreviousYear} PTS
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 )
