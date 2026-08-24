@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
     Dialog,
+    DialogDescription,
     DialogPopup,
     DialogTitle,
     DialogTrigger,
@@ -22,6 +23,7 @@ export function PlayerNameCell({ player }: { player: ScouterPlayer }) {
             <DialogPopup render={<Card />}>
                 <CardHeader>
                     <DialogTitle>{`${playerName} #${player.playerInfo.number}`}</DialogTitle>
+                    <DialogDescription>{player.team}</DialogDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-1 text-sm">
                     <div>Position: {player.playerInfo.fantasyPositions.join(' | ')}</div>
