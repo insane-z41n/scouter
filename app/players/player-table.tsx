@@ -42,6 +42,12 @@ export function PlayerTable({
         manualFiltering: false,
         onColumnFiltersChange: setColumnFilters,
         onSortingChange: setSorting,
+        initialState: {
+            columnPinning: {
+                start: ["name"],
+                end: [],
+            },
+        },
         state: {
             columnFilters,
             sorting,
@@ -57,8 +63,12 @@ export function PlayerTable({
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => {
+                            const isPinned = header.column.getIsPinned();
                             return (
-                            <TableHead key={header.id}>
+                            <TableHead
+                                key={header.id}
+                                className={isPinned ? "sticky left-0 z-20 bg-background" : undefined}
+                            >
                                 {header.isPlaceholder ? null : (
                                 <table.FlexRender header={header} />
                                 )}
@@ -76,11 +86,17 @@ export function PlayerTable({
                                 key={row.id}
                                 data-state={row.getIsSelected() && "selected"}
                             >
-                                {row.getVisibleCells().map((cell) => (
-                                <TableCell key={cell.id}>
-                                    <table.FlexRender cell={cell} />
-                                </TableCell>
-                                ))}
+                                {row.getVisibleCells().map((cell) => {
+                                    const isPinned = cell.column.getIsPinned();
+                                    return (
+                                    <TableCell
+                                        key={cell.id}
+                                        className={isPinned ? "sticky left-0 z-10 bg-background" : undefined}
+                                    >
+                                        <table.FlexRender cell={cell} />
+                                    </TableCell>
+                                    )
+                                })}
                             </TableRow>
                             ))
                         ) : (

@@ -1,5 +1,6 @@
 import {
     columnFilteringFeature,
+    columnPinningFeature,
     columnVisibilityFeature,
     createFilteredRowModel,
     createSortedRowModel,
@@ -11,13 +12,14 @@ import {
     rowSortingFeature,
     sortFn_alphanumeric,
     sortFn_text,
-    tableFeatures 
+    tableFeatures
 
 } from "@tanstack/react-table"
 
 
 export const features = tableFeatures({
     columnFilteringFeature,
+    columnPinningFeature,
     columnVisibilityFeature,
     filteredRowModel: createFilteredRowModel(),
     filterFns: {

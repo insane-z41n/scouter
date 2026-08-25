@@ -27,6 +27,28 @@ export type PlayerTableData = {
     team: string,
     projectedPoints: number,
     prevYearPoints: number,
+    projectedPassingAttempts: number,
+    projectedPassingYards: number,
+    projectedPassingYardsPerAttempt: number,
+    projectedPassingTouchdowns: number,
+    projectedRushingAttempts: number,
+    projectedRushingYards: number,
+    projectedRushingTouchdowns: number,
+    projectedReceptions: number,
+    projectedReceivingYards: number,
+    projectedReceivingTouchdowns: number,
+    statsPassingAttempts: number,
+    statsPassingYards: number,
+    statsPassingYardsPerAttempt: number,
+    statsPassingTouchdowns: number,
+    statsRushingAttempts: number,
+    statsRushingYards: number,
+    statsRushingTouchdowns: number,
+    statsReceptions: number,
+    statsReceivingTargets: number,
+    statsReceivingYards: number,
+    statsReceivingTouchdowns: number,
+    statsReceivingYardsPerReception: number
 }
 
 export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
@@ -40,21 +62,9 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
     const playersById = new Map(players.map((p) => [p._id, p]));
 
     return columnHelper.columns([
-        columnHelper.accessor("adp", {
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant='ghost'
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        ADP
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-        }),
+        sortingColumnHeader('adp', 'ADP'),
         columnHelper.accessor("name", {
-            header: "Player Name",
+            header: "NAME",
             cell: ({ row }) => {
                 const player = playersById.get(row.original.id);
                 if (!player) return null;
@@ -62,13 +72,7 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
             },
         }),
         columnHelper.accessor("team", {
-            header: ({ column }) => {
-                return (
-                    <div>
-                        Team
-                    </div>
-                );
-            },
+            header: "TEAM"
         }),
         columnHelper.accessor("position", {
             header: ({ column }) => {
@@ -118,32 +122,48 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
             },
             filterFn: "arrHas",
         }),
-        columnHelper.accessor("projectedPoints", {
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant='ghost'
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        Projected Points
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-        }),
-        columnHelper.accessor("prevYearPoints", {
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant='ghost'
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        {latestPreviousYear} PTS
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-        }),
-        
+        // Points 
+        sortingColumnHeader('projectedPoints', 'PROJ PTS'),
+        sortingColumnHeader('prevYearPoints', `${latestPreviousYear} PTS`),
+        // Projected stats
+        sortingColumnHeader('projectedPassingAttempts', 'PROJ PASS ATT'),
+        sortingColumnHeader('projectedPassingYards', 'PROJ PASS YDS'),
+        sortingColumnHeader('projectedPassingYardsPerAttempt', 'PROJ PASS YPA'),
+        sortingColumnHeader('projectedPassingTouchdowns', 'PROJ PASS TDS'),
+        sortingColumnHeader('projectedRushingAttempts', 'PROJ RUSH ATT'),
+        sortingColumnHeader('projectedRushingYards', 'PROJ RUSH YDS'),
+        sortingColumnHeader('projectedRushingTouchdowns', 'PROJ RUSH TDS'),
+        sortingColumnHeader('projectedReceptions', 'PROJ REC'),
+        sortingColumnHeader('projectedReceivingYards', 'PROJ REC YDS'),
+        sortingColumnHeader('projectedReceivingTouchdowns', 'PROJ REC TDS'),
+        // Previous Year Stats
+        sortingColumnHeader('statsPassingAttempts', `${latestPreviousYear} PASS ATT`),
+        sortingColumnHeader('statsPassingYards', `${latestPreviousYear} PASS YDS`),
+        sortingColumnHeader('statsPassingYardsPerAttempt', `${latestPreviousYear} PASS YPA`),
+        sortingColumnHeader('statsPassingTouchdowns', `${latestPreviousYear} PASS TDS`),
+        sortingColumnHeader('statsRushingAttempts', `${latestPreviousYear} RUSH ATT`),
+        sortingColumnHeader('statsRushingYards', `${latestPreviousYear} RUSH YDS`),
+        sortingColumnHeader('statsRushingTouchdowns', `${latestPreviousYear} RUSH TDS`),
+        sortingColumnHeader('statsReceptions', `${latestPreviousYear} REC`),
+        sortingColumnHeader('statsReceivingTargets', `${latestPreviousYear} REC TGT`),
+        sortingColumnHeader('statsReceivingYards', `${latestPreviousYear} REC YDS`),
+        sortingColumnHeader('statsReceivingTouchdowns', `${latestPreviousYear} REC TDS`),
+        sortingColumnHeader('statsReceivingYardsPerReception', `${latestPreviousYear} REC YPR`),
     ]);
 };
+
+const sortingColumnHeader = (columnKey: keyof PlayerTableData, columnName: string) => {
+    return columnHelper.accessor(columnKey, {
+        header: ({column}) => {
+            return (
+                    <Button
+                        variant='ghost'
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        {columnName}
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+            )
+        }
+    });
+}
