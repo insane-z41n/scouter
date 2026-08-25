@@ -8,28 +8,26 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { PlayerStatsChart } from "@/components/scouter-components/player-stats-chart";
 
-import { getLatestYearEntry, ScouterPlayer } from "@/lib/functions/scouter-service/get-players";
+import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players";
 
 export function PlayerNameCell({ player }: { player: ScouterPlayer }) {
     const playerName = `${player.playerInfo.firstName} ${player.playerInfo.lastName}`;
-    const lastYearProjected = getLatestYearEntry(player.projectedStats);
-    const lastYearPrevious = getLatestYearEntry(player.previousStats);
     return (
         <Dialog>
             <DialogTrigger render={<Button variant="link" className="h-auto p-0" />}>
-                { playerName } 
+                { playerName }
             </DialogTrigger>
-            <DialogPopup render={<Card />}>
+            <DialogPopup render={<Card />} className="max-w-lg">
                 <CardHeader>
                     <DialogTitle>{`${playerName} #${player.playerInfo.number}`}</DialogTitle>
-                    <DialogDescription>{player.team}</DialogDescription>
+                    <DialogDescription>
+                        {player.team} - {player.playerInfo.fantasyPositions.join(' | ')}
+                    </DialogDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-1 text-sm">
-                    <div>Position: {player.playerInfo.fantasyPositions.join(' | ')}</div>
-                    <div>ADP: {player.projectedStats[lastYearProjected].adp}</div>
-                    <div>Projected Points: {player.projectedStats[lastYearProjected].fantasyPointsPPR}</div>
-                    <div>Previous Year Points: {player.previousStats[lastYearPrevious].fantasyPointsHalfPPR}</div>
+                <CardContent>
+                    <PlayerStatsChart player={player} />
                 </CardContent>
             </DialogPopup>
         </Dialog>
