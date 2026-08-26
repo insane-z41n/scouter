@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,19 +12,33 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { login } from "@/lib/functions/scouter-service/login"
 
 export function Login() {
-
     const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const loginSubmitAction = (event: React.FormEvent<HTMLFormElement>) => {
+    const loginSubmitAction = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log("Login form submitted - Event:", event);
-        router.push('/home');
+        setError(null);
+        setIsSubmitting(true);
+
+        const formData = new FormData(event.currentTarget);
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+        const result = await login(email, password);
+        setIsSubmitting(false);
+
+        if (!result.success) {
+            setError(result.message);
+            return;
+        }
+        router.push('/databases');
     }
     const registerOnClickAction = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        console.log("Register button clicked - Event:", event);
         router.push('/register');
     }
 
@@ -42,6 +57,7 @@ export function Login() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="scouter@example.com"
                     required
@@ -51,14 +67,15 @@ export function Login() {
                 <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" name="password" type="password" required />
                 </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
             </form>
         </CardContent>
         <CardFooter className="flex-col gap-6">
-            <Button type="submit" className="w-full" form="login-form">
-                Login
+            <Button type="submit" className="w-full" form="login-form" disabled={isSubmitting}>
+                {isSubmitting ? "Logging in..." : "Login"}
             </Button>
             <Button onClick={registerOnClickAction} variant="outline" className="w-full" >
                 Register

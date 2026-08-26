@@ -1,8 +1,10 @@
 import {
     columnFilteringFeature,
     columnPinningFeature,
+    columnSizingFeature,
     columnVisibilityFeature,
     createFilteredRowModel,
+    createPaginatedRowModel,
     createSortedRowModel,
     filterFn_arrHas,
     filterFn_includesString,
@@ -20,6 +22,7 @@ import {
 export const features = tableFeatures({
     columnFilteringFeature,
     columnPinningFeature,
+    columnSizingFeature,
     columnVisibilityFeature,
     filteredRowModel: createFilteredRowModel(),
     filterFns: {
@@ -27,6 +30,7 @@ export const features = tableFeatures({
         includeString: filterFn_includesString,
         inNumberRange: filterFn_inNumberRange,
     },
+    paginatedRowModel: createPaginatedRowModel(),
     rowPaginationFeature,
     rowSelectionFeature,
     rowSortingFeature,

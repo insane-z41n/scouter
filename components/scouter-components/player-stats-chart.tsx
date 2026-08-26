@@ -64,9 +64,12 @@ export function PlayerStatsChart({ player }: { player: ScouterPlayer }) {
         [player.previousStats, player.projectedStats]
     );
 
-    const [selectedStat, setSelectedStat] = useState<StatKey>(
-        availableStats[0]?.value ?? STAT_OPTIONS[0].value
-    );
+    const [selectedStat, setSelectedStat] = useState<StatKey>(() => {
+        const defaultStat: StatKey = "fantasyPointsPPR";
+        return availableStats.some(({ value }) => value === defaultStat)
+            ? defaultStat
+            : (availableStats[0]?.value ?? STAT_OPTIONS[0].value);
+    });
 
     const chartData = useMemo(() => {
         const years = new Set([

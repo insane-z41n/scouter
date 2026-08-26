@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,14 +12,43 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { register } from "@/lib/functions/scouter-service/register"
 
 export function Register() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const backToLoginOnClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    console.log("Register button clicked - Event:", event);
     router.push('/login');
   }
+
+  const registerSubmitAction = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirm-password") as string;
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const result = await register(email, password);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    router.push('/databases');
+  }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -28,12 +58,13 @@ export function Register() {
 
       </CardHeader>
       <CardContent>
-        <form>
+        <form id="register-form" onSubmit={registerSubmitAction}>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="scouter@example.com"
                 required
@@ -43,20 +74,21 @@ export function Register() {
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
               </div>
-              <Input id="password" type="password" required />
+              <Input id="password" name="password" type="password" required />
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
               </div>
-              <Input id="confirm-password" type="password" required />
+              <Input id="confirm-password" name="confirm-password" type="password" required />
             </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-6">
-        <Button type="submit" className="w-full">
-          Register
+        <Button type="submit" className="w-full" form="register-form" disabled={isSubmitting}>
+          {isSubmitting ? "Registering..." : "Register"}
         </Button>
         <Button variant="outline" className="w-full" onClick={backToLoginOnClick}>
             Back to Login
@@ -66,4 +98,4 @@ export function Register() {
   )
 }
 
-export default { Register }
+export default Register

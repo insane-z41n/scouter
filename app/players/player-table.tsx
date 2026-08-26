@@ -24,9 +24,17 @@ import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 export function PlayerTable({
   data,
   players,
-}: {data: PlayerTableData[]; players: ScouterPlayer[]}) {
+  renderRowActions,
+}: {
+  data: PlayerTableData[]
+  players: ScouterPlayer[]
+  renderRowActions?: (playerId: string) => React.ReactNode
+}) {
     const positions = React.useMemo(() => getPlayerPositions(players), [players])
-    const columns = React.useMemo(() => getColumns(players, positions), [players, positions])
+    const columns = React.useMemo(
+      () => getColumns(players, positions, { renderRowActions }),
+      [players, positions, renderRowActions]
+    )
     const [sorting, setSorting] = React.useState<SortingState>([
         {
             id: 'adp',
@@ -44,8 +52,12 @@ export function PlayerTable({
         onSortingChange: setSorting,
         initialState: {
             columnPinning: {
-                start: ["name"],
+                start: renderRowActions ? ["name", "actions"] : ["name"],
                 end: [],
+            },
+            pagination: {
+                pageIndex: 0,
+                pageSize: 25,
             },
         },
         state: {
@@ -67,7 +79,12 @@ export function PlayerTable({
                             return (
                             <TableHead
                                 key={header.id}
-                                className={isPinned ? "sticky left-0 z-20 bg-background" : undefined}
+                                className={isPinned ? "sticky z-20 bg-background" : undefined}
+                                style={
+                                    isPinned
+                                        ? { left: header.column.getStart("start"), width: header.column.getSize() }
+                                        : undefined
+                                }
                             >
                                 {header.isPlaceholder ? null : (
                                 <table.FlexRender header={header} />
@@ -91,7 +108,12 @@ export function PlayerTable({
                                     return (
                                     <TableCell
                                         key={cell.id}
-                                        className={isPinned ? "sticky left-0 z-10 bg-background" : undefined}
+                                        className={isPinned ? "sticky z-10 bg-background" : undefined}
+                                        style={
+                                            isPinned
+                                                ? { left: cell.column.getStart("start"), width: cell.column.getSize() }
+                                                : undefined
+                                        }
                                     >
                                         <table.FlexRender cell={cell} />
                                     </TableCell>

@@ -57,7 +57,13 @@ export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
 
 const columnHelper = createColumnHelper<DataTableFeatures, PlayerTableData>();
 
-export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
+export type GetColumnsOptions = {
+    // When provided, appends an "Actions" column rendering the given node per row -
+    // used by the board's pool panel to add a "Send to Round" dropdown per player.
+    renderRowActions?: (playerId: string) => React.ReactNode;
+};
+
+export const getColumns = (players: ScouterPlayer[], positions: string[], options?: GetColumnsOptions) => {
     const latestPreviousYear = getLatestYearEntry(players[0]?.previousStats);
     const playersById = new Map(players.map((p) => [p._id, p]));
 
@@ -65,6 +71,7 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
         sortingColumnHeader('adp', 'ADP'),
         columnHelper.accessor("name", {
             header: "NAME",
+            size: 220,
             cell: ({ row }) => {
                 const player = playersById.get(row.original.id);
                 if (!player) return null;
@@ -149,6 +156,16 @@ export const getColumns = (players: ScouterPlayer[], positions: string[]) => {
         sortingColumnHeader('statsReceivingYards', `${latestPreviousYear} REC YDS`),
         sortingColumnHeader('statsReceivingTouchdowns', `${latestPreviousYear} REC TDS`),
         sortingColumnHeader('statsReceivingYardsPerReception', `${latestPreviousYear} REC YPR`),
+        ...(options?.renderRowActions
+            ? [
+                  columnHelper.display({
+                      id: "actions",
+                      header: "ACTIONS",
+                      size: 160,
+                      cell: ({ row }) => options.renderRowActions!(row.original.id),
+                  }),
+              ]
+            : []),
     ]);
 };
 
