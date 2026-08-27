@@ -4,8 +4,23 @@ import { memo } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
-import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
+import { getLatestYearEntry, ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
+import { PlayerNameCell } from "@/components/scouter-components/player-stat-card"
 import { RoundSelectMenu } from "./round-select-menu"
+
+function getPlayerQuickStats(player: ScouterPlayer) {
+    const hasProjected = Object.keys(player.projectedStats).length > 0
+    const hasPrevious = Object.keys(player.previousStats).length > 0
+    const projected = hasProjected ? player.projectedStats[getLatestYearEntry(player.projectedStats)] : null
+    const previous = hasPrevious ? player.previousStats[getLatestYearEntry(player.previousStats)] : null
+
+    return {
+        projectedPoints: projected?.fantasyPointsPPR ?? null,
+        prevYearPoints: previous?.fantasyPointsPPR ?? null,
+        prevYearOverallRank: previous?.overallFantasyRankPPR ?? null,
+        prevYearPositionalRank: previous?.positionalFantasyRankPPR ?? null,
+    }
+}
 
 export function roundPlayerDragId(roundNumber: number, playerId: string) {
     return `round-player-${roundNumber}-${playerId}`
@@ -56,6 +71,9 @@ function RoundPlayerCardComponent({
     const showInsertionLine = isOver && active !== null && active.id !== dragId
     const insertBelow = showInsertionLine && activeIndex < index
 
+    const { projectedPoints, prevYearPoints, prevYearOverallRank, prevYearPositionalRank } =
+        getPlayerQuickStats(player)
+
     return (
         <div
             ref={setNodeRef}
@@ -74,8 +92,16 @@ function RoundPlayerCardComponent({
                 <GripVertical className="size-4" />
             </button>
             <div className="flex-1 truncate">
-                <div className="truncate font-medium">
-                    {player.playerInfo.firstName} {player.playerInfo.lastName}
+                <div className="flex items-baseline gap-2">
+                    <span className="truncate font-medium">
+                        <PlayerNameCell player={player} />
+                    </span>
+                    <span className="shrink-0 truncate text-xs text-muted-foreground">
+                        {projectedPoints !== null && <>Proj {projectedPoints.toFixed(1)} pts</>}
+                        {prevYearPoints !== null && <> · Prev {prevYearPoints.toFixed(1)} pts</>}
+                        {prevYearOverallRank !== null && <> · Ovr #{prevYearOverallRank}</>}
+                        {prevYearPositionalRank !== null && <> (Pos #{prevYearPositionalRank})</>}
+                    </span>
                 </div>
                 <div className="text-xs text-muted-foreground">
                     {player.playerInfo.primaryPosition} · {player.team}

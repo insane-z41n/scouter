@@ -27,7 +27,8 @@ import { useDraftBoard, useUpdateRound } from "@/lib/hooks/use-draft-boards"
 import { useAssignSlotPlayer, useTeamsForBoard } from "@/lib/hooks/use-teams"
 import { usePlayers } from "@/lib/hooks/use-players"
 import { getPlacedPlayerIds } from "@/lib/board/pool"
-import { getRound, movePlayerToRound, reorderRound } from "@/lib/board/round-ops"
+import { clearAllRounds, clearRound, getRound, movePlayerToRound, reorderRound } from "@/lib/board/round-ops"
+import { getPlayerPositions } from "@/app/players/columns"
 import { parseRoundPlayerDragId } from "./round-player-card"
 import { parseRoundDropzoneId } from "./round-column"
 import { parseTeamSlotDropId } from "./team-slot-card"
@@ -72,6 +73,7 @@ export function BoardView({
         () => Array.from({ length: boardData.numberOfRounds }, (_, i) => i + 1),
         [boardData.numberOfRounds]
     )
+    const positions = useMemo(() => getPlayerPositions(players), [players])
 
     const applyRoundsOptimistically = useCallback(
         (nextRounds: Round[]) => {
@@ -118,6 +120,21 @@ export function BoardView({
     const handleSendToPool = useCallback((playerId: string) => handleMoveToRound(playerId, null), [
         handleMoveToRound,
     ])
+
+    const handleResetRound = useCallback(
+        (roundNumber: number) => {
+            const nextRounds = clearRound(boardData.rounds, roundNumber)
+            applyRoundsOptimistically(nextRounds)
+            persistChangedRounds(nextRounds, [roundNumber])
+        },
+        [boardData.rounds, applyRoundsOptimistically, persistChangedRounds]
+    )
+
+    const handleResetAllRounds = useCallback(() => {
+        const { rounds: nextRounds, changedRoundNumbers } = clearAllRounds(boardData.rounds)
+        applyRoundsOptimistically(nextRounds)
+        persistChangedRounds(nextRounds, changedRoundNumbers)
+    }, [boardData.rounds, applyRoundsOptimistically, persistChangedRounds])
 
     const handleAssignSlot = useCallback(
         (teamId: string, slotId: string, playerId: string | null) => {
@@ -247,9 +264,12 @@ export function BoardView({
                                     <RoundsTab
                                         rounds={boardData.rounds}
                                         roundNumbers={roundNumbers}
+                                        positions={positions}
                                         playersById={playersById}
                                         onMoveToRound={handleMoveToRound}
                                         onSendToPool={handleSendToPool}
+                                        onResetRound={handleResetRound}
+                                        onResetAllRounds={handleResetAllRounds}
                                     />
                                 )}
                             </div>

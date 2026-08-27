@@ -3,6 +3,7 @@
 import { memo } from "react"
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { Button } from "@/components/ui/button"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { Round } from "@/lib/functions/scouter-service/draft-board"
 import { RoundPlayerCard, roundPlayerDragId } from "./round-player-card"
@@ -20,14 +21,18 @@ function RoundColumnComponent({
     round,
     roundNumbers,
     playersById,
+    selectedPositions,
     onMoveToRound,
     onSendToPool,
+    onResetRound,
 }: {
     round: Round
     roundNumbers: number[]
     playersById: Map<string, ScouterPlayer>
+    selectedPositions: string[]
     onMoveToRound: (playerId: string, roundNumber: number) => void
     onSendToPool: (playerId: string) => void
+    onResetRound: (roundNumber: number) => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: roundDropzoneId(round.roundNumber) })
     const sortedPlayers = [...round.players].sort((a, b) => a.rank - b.rank)
@@ -36,8 +41,18 @@ function RoundColumnComponent({
     return (
         <div className="flex w-full flex-col gap-2 rounded-lg border bg-muted/30 p-2">
             <div className="flex items-center justify-between px-1">
-                <span className="text-sm font-semibold">Round {round.roundNumber}</span>
-                <span className="text-xs text-muted-foreground">{round.players.length}</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">Round {round.roundNumber}</span>
+                    <span className="text-xs text-muted-foreground">{round.players.length}</span>
+                </div>
+                <Button
+                    variant="ghost"
+                    size="xs"
+                    disabled={round.players.length === 0}
+                    onClick={() => onResetRound(round.roundNumber)}
+                >
+                    Reset
+                </Button>
             </div>
             <div
                 ref={setNodeRef}
@@ -47,6 +62,12 @@ function RoundColumnComponent({
                     {sortedPlayers.map((rankedPlayer) => {
                         const player = playersById.get(rankedPlayer.playerId)
                         if (!player) return null
+                        if (
+                            selectedPositions.length > 0 &&
+                            !selectedPositions.includes(player.playerInfo.primaryPosition)
+                        ) {
+                            return null
+                        }
                         return (
                             <RoundPlayerCard
                                 key={rankedPlayer.playerId}

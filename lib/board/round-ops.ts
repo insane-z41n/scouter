@@ -60,3 +60,17 @@ export function reorderRound(rounds: Round[], roundNumber: number, orderedPlayer
 export function getRound(rounds: Round[], roundNumber: number): Round | undefined {
     return rounds.find((round) => round.roundNumber === roundNumber);
 }
+
+// Empties one round, sending its players back to the pool (they're just no longer
+// placed anywhere - nothing is deleted).
+export function clearRound(rounds: Round[], roundNumber: number): Round[] {
+    return rounds.map((round) => (round.roundNumber === roundNumber ? { ...round, players: [] } : round));
+}
+
+// Empties every round that currently has players, returning both the resulting
+// rounds and which round numbers actually changed (so callers only persist those).
+export function clearAllRounds(rounds: Round[]): { rounds: Round[]; changedRoundNumbers: number[] } {
+    const changedRoundNumbers = rounds.filter((r) => r.players.length > 0).map((r) => r.roundNumber);
+    const nextRounds = rounds.map((round) => (round.players.length > 0 ? { ...round, players: [] } : round));
+    return { rounds: nextRounds, changedRoundNumbers };
+}
