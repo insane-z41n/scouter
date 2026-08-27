@@ -35,6 +35,7 @@ import { parseTeamSlotDropId } from "./team-slot-card"
 import { RoundsTab } from "./rounds-tab"
 import { TeamsTab } from "./teams-tab"
 import { PlayerPoolPanel } from "./player-pool-panel"
+import { CompareTray } from "./compare-tray"
 
 const SPORT = "nfl"
 
@@ -55,6 +56,7 @@ export function BoardView({
     const [activeTab, setActiveTab] = useState<"teams" | "rounds">("rounds")
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(initialTeams[0]?._id ?? null)
     const [saveError, setSaveError] = useState<string | null>(null)
+    const [compareIds, setCompareIds] = useState<string[]>([])
 
     const updateRoundMutation = useUpdateRound(board._id)
     const assignSlotMutation = useAssignSlotPlayer(board._id)
@@ -74,6 +76,20 @@ export function BoardView({
         [boardData.numberOfRounds]
     )
     const positions = useMemo(() => getPlayerPositions(players), [players])
+
+    const compareIdSet = useMemo(() => new Set(compareIds), [compareIds])
+    const toggleCompare = useCallback(
+        (playerId: string) =>
+            setCompareIds((prev) =>
+                prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId]
+            ),
+        []
+    )
+    const clearCompare = useCallback(() => setCompareIds([]), [])
+    const comparePlayers = useMemo(
+        () => compareIds.map((id) => playersById.get(id)).filter((p): p is ScouterPlayer => !!p),
+        [compareIds, playersById]
+    )
 
     const applyRoundsOptimistically = useCallback(
         (nextRounds: Round[]) => {
@@ -270,6 +286,8 @@ export function BoardView({
                                         onSendToPool={handleSendToPool}
                                         onResetRound={handleResetRound}
                                         onResetAllRounds={handleResetAllRounds}
+                                        compareIds={compareIdSet}
+                                        onToggleCompare={toggleCompare}
                                     />
                                 )}
                             </div>
@@ -283,10 +301,13 @@ export function BoardView({
                             poolPlayers={poolPlayers}
                             roundNumbers={roundNumbers}
                             onSendToRound={handleMoveToRound}
+                            compareIds={compareIdSet}
+                            onToggleCompare={toggleCompare}
                         />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>
+            <CompareTray players={comparePlayers} onToggleCompare={toggleCompare} onClear={clearCompare} />
         </DndContext>
     )
 }

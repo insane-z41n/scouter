@@ -23,7 +23,8 @@ import { ScouterPlayer, ScouterPlayerYearStats } from "@/lib/functions/scouter-s
 
 // Add a stat to the toggle by adding one entry here — value is checked against
 // ScouterPlayerYearStats, and the select options / chart both read from this list.
-const STAT_OPTIONS = [
+// Exported so the multi-player compare charts can plot the same set of stats.
+export const STAT_OPTIONS = [
     { value: "passingAttempts", label: "Passing Attempts" },
     { value: "passingYards", label: "Passing Yards" },
     { value: "passingYardsPerAttempt", label: "Passing Yards / Attempt" },
@@ -37,7 +38,7 @@ const STAT_OPTIONS = [
     { value: "fantasyPointsPPR", label: "Fantasy Points (PPR)" },
 ] as const satisfies ReadonlyArray<{ value: keyof ScouterPlayerYearStats; label: string }>;
 
-type StatKey = (typeof STAT_OPTIONS)[number]["value"];
+export type StatKey = (typeof STAT_OPTIONS)[number]["value"];
 
 const chartConfig = {
     previous: {

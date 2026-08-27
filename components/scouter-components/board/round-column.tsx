@@ -25,6 +25,8 @@ function RoundColumnComponent({
     onMoveToRound,
     onSendToPool,
     onResetRound,
+    compareIds,
+    onToggleCompare,
 }: {
     round: Round
     roundNumbers: number[]
@@ -33,6 +35,8 @@ function RoundColumnComponent({
     onMoveToRound: (playerId: string, roundNumber: number) => void
     onSendToPool: (playerId: string) => void
     onResetRound: (roundNumber: number) => void
+    compareIds: Set<string>
+    onToggleCompare: (playerId: string) => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: roundDropzoneId(round.roundNumber) })
     const sortedPlayers = [...round.players].sort((a, b) => a.rank - b.rank)
@@ -76,6 +80,8 @@ function RoundColumnComponent({
                                 roundNumbers={roundNumbers}
                                 onMoveToRound={onMoveToRound}
                                 onSendToPool={onSendToPool}
+                                compareSelected={compareIds.has(player._id)}
+                                onToggleCompare={onToggleCompare}
                             />
                         )
                     })}

@@ -55,6 +55,37 @@ export const getPlayerPositions = (players: ScouterPlayer[]): string[] => {
     return Array.from(new Set(players.flatMap((p) => p.playerInfo.primaryPosition))).sort();
 };
 
+// Shared list of (key, label) pairs for every stat column - reused by the player
+// table's columns below and by the compare dialog's rows, so labels can't drift
+// between the two views.
+export const getStatFields = (latestPreviousYear: number): { key: keyof PlayerTableData; label: string }[] => [
+    { key: "adp", label: "ADP" },
+    { key: "projectedPoints", label: "PROJ PTS" },
+    { key: "prevYearPoints", label: `${latestPreviousYear} PTS` },
+    { key: "projectedPassingAttempts", label: "PROJ PASS ATT" },
+    { key: "projectedPassingYards", label: "PROJ PASS YDS" },
+    { key: "projectedPassingYardsPerAttempt", label: "PROJ PASS YPA" },
+    { key: "projectedPassingTouchdowns", label: "PROJ PASS TDS" },
+    { key: "projectedRushingAttempts", label: "PROJ RUSH ATT" },
+    { key: "projectedRushingYards", label: "PROJ RUSH YDS" },
+    { key: "projectedRushingTouchdowns", label: "PROJ RUSH TDS" },
+    { key: "projectedReceptions", label: "PROJ REC" },
+    { key: "projectedReceivingYards", label: "PROJ REC YDS" },
+    { key: "projectedReceivingTouchdowns", label: "PROJ REC TDS" },
+    { key: "statsPassingAttempts", label: `${latestPreviousYear} PASS ATT` },
+    { key: "statsPassingYards", label: `${latestPreviousYear} PASS YDS` },
+    { key: "statsPassingYardsPerAttempt", label: `${latestPreviousYear} PASS YPA` },
+    { key: "statsPassingTouchdowns", label: `${latestPreviousYear} PASS TDS` },
+    { key: "statsRushingAttempts", label: `${latestPreviousYear} RUSH ATT` },
+    { key: "statsRushingYards", label: `${latestPreviousYear} RUSH YDS` },
+    { key: "statsRushingTouchdowns", label: `${latestPreviousYear} RUSH TDS` },
+    { key: "statsReceptions", label: `${latestPreviousYear} REC` },
+    { key: "statsReceivingTargets", label: `${latestPreviousYear} REC TGT` },
+    { key: "statsReceivingYards", label: `${latestPreviousYear} REC YDS` },
+    { key: "statsReceivingTouchdowns", label: `${latestPreviousYear} REC TDS` },
+    { key: "statsReceivingYardsPerReception", label: `${latestPreviousYear} REC YPR` },
+];
+
 const columnHelper = createColumnHelper<DataTableFeatures, PlayerTableData>();
 
 export type GetColumnsOptions = {
@@ -129,39 +160,16 @@ export const getColumns = (players: ScouterPlayer[], positions: string[], option
             },
             filterFn: "arrHas",
         }),
-        // Points 
-        sortingColumnHeader('projectedPoints', 'PROJ PTS'),
-        sortingColumnHeader('prevYearPoints', `${latestPreviousYear} PTS`),
-        // Projected stats
-        sortingColumnHeader('projectedPassingAttempts', 'PROJ PASS ATT'),
-        sortingColumnHeader('projectedPassingYards', 'PROJ PASS YDS'),
-        sortingColumnHeader('projectedPassingYardsPerAttempt', 'PROJ PASS YPA'),
-        sortingColumnHeader('projectedPassingTouchdowns', 'PROJ PASS TDS'),
-        sortingColumnHeader('projectedRushingAttempts', 'PROJ RUSH ATT'),
-        sortingColumnHeader('projectedRushingYards', 'PROJ RUSH YDS'),
-        sortingColumnHeader('projectedRushingTouchdowns', 'PROJ RUSH TDS'),
-        sortingColumnHeader('projectedReceptions', 'PROJ REC'),
-        sortingColumnHeader('projectedReceivingYards', 'PROJ REC YDS'),
-        sortingColumnHeader('projectedReceivingTouchdowns', 'PROJ REC TDS'),
-        // Previous Year Stats
-        sortingColumnHeader('statsPassingAttempts', `${latestPreviousYear} PASS ATT`),
-        sortingColumnHeader('statsPassingYards', `${latestPreviousYear} PASS YDS`),
-        sortingColumnHeader('statsPassingYardsPerAttempt', `${latestPreviousYear} PASS YPA`),
-        sortingColumnHeader('statsPassingTouchdowns', `${latestPreviousYear} PASS TDS`),
-        sortingColumnHeader('statsRushingAttempts', `${latestPreviousYear} RUSH ATT`),
-        sortingColumnHeader('statsRushingYards', `${latestPreviousYear} RUSH YDS`),
-        sortingColumnHeader('statsRushingTouchdowns', `${latestPreviousYear} RUSH TDS`),
-        sortingColumnHeader('statsReceptions', `${latestPreviousYear} REC`),
-        sortingColumnHeader('statsReceivingTargets', `${latestPreviousYear} REC TGT`),
-        sortingColumnHeader('statsReceivingYards', `${latestPreviousYear} REC YDS`),
-        sortingColumnHeader('statsReceivingTouchdowns', `${latestPreviousYear} REC TDS`),
-        sortingColumnHeader('statsReceivingYardsPerReception', `${latestPreviousYear} REC YPR`),
+        // Points, projected stats, and previous year stats
+        ...getStatFields(latestPreviousYear)
+            .filter(({ key }) => key !== "adp")
+            .map(({ key, label }) => sortingColumnHeader(key, label)),
         ...(options?.renderRowActions
             ? [
                   columnHelper.display({
                       id: "actions",
                       header: "ACTIONS",
-                      size: 160,
+                      size: 220,
                       cell: ({ row }) => options.renderRowActions!(row.original.id),
                   }),
               ]

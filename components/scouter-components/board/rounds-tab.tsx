@@ -28,6 +28,8 @@ export function RoundsTab({
     onSendToPool,
     onResetRound,
     onResetAllRounds,
+    compareIds,
+    onToggleCompare,
 }: {
     rounds: Round[]
     roundNumbers: number[]
@@ -37,6 +39,8 @@ export function RoundsTab({
     onSendToPool: (playerId: string) => void
     onResetRound: (roundNumber: number) => void
     onResetAllRounds: () => void
+    compareIds: Set<string>
+    onToggleCompare: (playerId: string) => void
 }) {
     const [selectedPositions, setSelectedPositions] = useState<string[]>([])
     const [resetDialogOpen, setResetDialogOpen] = useState(false)
@@ -89,6 +93,8 @@ export function RoundsTab({
                             onMoveToRound={onMoveToRound}
                             onSendToPool={onSendToPool}
                             onResetRound={onResetRound}
+                            compareIds={compareIds}
+                            onToggleCompare={onToggleCompare}
                         />
                     ))}
                 </div>

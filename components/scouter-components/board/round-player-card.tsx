@@ -7,6 +7,7 @@ import { GripVertical } from "lucide-react"
 import { getLatestYearEntry, ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { PlayerNameCell } from "@/components/scouter-components/player-stat-card"
 import { RoundSelectMenu } from "./round-select-menu"
+import { CompareToggleButton } from "./compare-toggle-button"
 
 function getPlayerQuickStats(player: ScouterPlayer) {
     const hasProjected = Object.keys(player.projectedStats).length > 0
@@ -38,12 +39,16 @@ function RoundPlayerCardComponent({
     roundNumbers,
     onMoveToRound,
     onSendToPool,
+    compareSelected,
+    onToggleCompare,
 }: {
     player: ScouterPlayer
     roundNumber: number
     roundNumbers: number[]
     onMoveToRound: (playerId: string, roundNumber: number) => void
     onSendToPool: (playerId: string) => void
+    compareSelected: boolean
+    onToggleCompare: (playerId: string) => void
 }) {
     const dragId = roundPlayerDragId(roundNumber, player._id)
     const {
@@ -78,7 +83,9 @@ function RoundPlayerCardComponent({
         <div
             ref={setNodeRef}
             style={style}
-            className="relative flex items-center gap-2 rounded-md border bg-card p-2 text-sm"
+            className={`relative flex items-center gap-2 rounded-md border bg-card p-2 text-sm ${
+                compareSelected ? "ring-2 ring-primary" : ""
+            }`}
         >
             {showInsertionLine && !insertBelow && (
                 <div className="absolute inset-x-0 -top-1 h-0.5 rounded-full bg-primary" />
@@ -107,13 +114,16 @@ function RoundPlayerCardComponent({
                     {player.playerInfo.primaryPosition} · {player.team}
                 </div>
             </div>
-            <RoundSelectMenu
-                roundNumbers={roundNumbers}
-                currentRoundNumber={roundNumber}
-                onSelectRound={(toRoundNumber) => onMoveToRound(player._id, toRoundNumber)}
-                onSendToPool={() => onSendToPool(player._id)}
-                triggerLabel="Move"
-            />
+            <div className="flex items-center gap-2">
+                <CompareToggleButton selected={compareSelected} onToggle={() => onToggleCompare(player._id)} />
+                <RoundSelectMenu
+                    roundNumbers={roundNumbers}
+                    currentRoundNumber={roundNumber}
+                    onSelectRound={(toRoundNumber) => onMoveToRound(player._id, toRoundNumber)}
+                    onSendToPool={() => onSendToPool(player._id)}
+                    triggerLabel="Move"
+                />
+            </div>
             {showInsertionLine && insertBelow && (
                 <div className="absolute inset-x-0 -bottom-1 h-0.5 rounded-full bg-primary" />
             )}
