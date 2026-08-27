@@ -18,6 +18,7 @@ export function Register() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registeredMessage, setRegisteredMessage] = useState<string | null>(null);
 
   const backToLoginOnClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -46,7 +47,27 @@ export function Register() {
       setError(result.message);
       return;
     }
-    router.push('/databases');
+    setRegisteredMessage(result.message);
+  }
+
+  if (registeredMessage) {
+    return (
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="flex justify-center gap-2">
+            <span>Check Your Email</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{registeredMessage}</p>
+        </CardContent>
+        <CardFooter className="flex-col gap-6">
+          <Button variant="outline" className="w-full" onClick={backToLoginOnClick}>
+            Back to Login
+          </Button>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (

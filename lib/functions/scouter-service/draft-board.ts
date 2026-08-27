@@ -17,7 +17,7 @@ export type RosterSlotCount = {
     count: number;
 };
 
-// List-view shape (no rounds payload - kept light for the databases list page)
+// List-view shape (no rounds payload - kept light for the draft boards list page)
 export type DraftBoardSummary = {
     _id: string;
     draftBoardName: string;

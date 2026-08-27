@@ -41,7 +41,6 @@ function RoundPlayerCardComponent({
     roundNumber,
     roundNumbers,
     onMoveToRound,
-    onSendToPool,
     compareSelected,
     onToggleCompare,
     teams,
@@ -51,8 +50,7 @@ function RoundPlayerCardComponent({
     player: ScouterPlayer
     roundNumber: number
     roundNumbers: number[]
-    onMoveToRound: (playerId: string, roundNumber: number) => void
-    onSendToPool: (playerId: string) => void
+    onMoveToRound: (playerId: string, roundNumber: number | null) => void
     compareSelected: boolean
     onToggleCompare: (playerId: string) => void
     teams: Team[]
@@ -135,8 +133,6 @@ function RoundPlayerCardComponent({
                     roundNumbers={roundNumbers}
                     currentRoundNumber={roundNumber}
                     onSelectRound={(toRoundNumber) => onMoveToRound(player._id, toRoundNumber)}
-                    onSendToPool={() => onSendToPool(player._id)}
-                    triggerLabel="Move"
                 />
                 <MarkDraftedButton onMarkDrafted={() => onMarkDrafted(player._id)} />
             </div>

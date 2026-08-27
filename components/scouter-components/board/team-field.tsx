@@ -11,12 +11,14 @@ export function TeamField({
     teamId,
     slots,
     playersById,
+    draftedIds,
     onAssignSlot,
     onMarkDrafted,
 }: {
     teamId: string
     slots: RosterSlot[]
     playersById: Map<string, ScouterPlayer>
+    draftedIds: Set<string>
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
 }) {
@@ -26,16 +28,20 @@ export function TeamField({
     // rather than stacked.
     const [wr1, ...restWr] = formation.wr
 
-    const renderSlot = (slot: RosterSlot) => (
-        <TeamFieldSlotCard
-            key={slot.slotId}
-            teamId={teamId}
-            slot={slot}
-            assignedPlayer={slot.playerId ? playersById.get(slot.playerId) : undefined}
-            onAssignSlot={onAssignSlot}
-            onMarkDrafted={onMarkDrafted}
-        />
-    )
+    const renderSlot = (slot: RosterSlot) => {
+        const assignedPlayer = slot.playerId ? playersById.get(slot.playerId) : undefined
+        return (
+            <TeamFieldSlotCard
+                key={slot.slotId}
+                teamId={teamId}
+                slot={slot}
+                assignedPlayer={assignedPlayer}
+                isDrafted={!!assignedPlayer && draftedIds.has(assignedPlayer._id)}
+                onAssignSlot={onAssignSlot}
+                onMarkDrafted={onMarkDrafted}
+            />
+        )
+    }
 
     return (
         <div className="flex h-full w-full flex-col items-center justify-between gap-1 rounded-lg border bg-gradient-to-b from-green-950/40 to-green-900/20 p-2">

@@ -35,11 +35,15 @@ export function Login() {
             setError(result.message);
             return;
         }
-        router.push('/databases');
+        router.push('/draft-boards');
     }
     const registerOnClickAction = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         router.push('/register');
+    }
+    const forgotPasswordOnClickAction = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        router.push('/forgot-password');
     }
 
     return (
@@ -76,6 +80,9 @@ export function Login() {
         <CardFooter className="flex-col gap-6">
             <Button type="submit" className="w-full" form="login-form" disabled={isSubmitting}>
                 {isSubmitting ? "Logging in..." : "Login"}
+            </Button>
+            <Button onClick={forgotPasswordOnClickAction} variant="link" className="w-full -my-4" >
+                Forgot password?
             </Button>
             <Button onClick={registerOnClickAction} variant="outline" className="w-full" >
                 Register

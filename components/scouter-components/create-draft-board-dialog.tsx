@@ -19,7 +19,7 @@ import {
     RosterSlotCountsInput,
 } from "@/components/scouter-components/board/roster-slot-counts"
 
-export function CreateDatabaseDialog() {
+export function CreateDraftBoardDialog() {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -42,17 +42,17 @@ export function CreateDatabaseDialog() {
         try {
             const board = await createDraftBoard.mutateAsync({ draftBoardName, rosterSlots })
             setOpen(false)
-            router.push(`/databases/${board._id}`)
+            router.push(`/draft-boards/${board._id}`)
         } catch {
-            setError("Could not create database. Try a different name.")
+            setError("Could not create draft board. Try a different name.")
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger render={<Button>Create Database</Button>} />
+            <DialogTrigger render={<Button>Create Draft Board</Button>} />
             <DialogPopup className="max-w-sm p-6">
-                <DialogTitle>Create Database</DialogTitle>
+                <DialogTitle>Create Draft Board</DialogTitle>
                 <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="name">Name</Label>

@@ -25,8 +25,8 @@ export function RoundsTab({
     roundNumbers,
     positions,
     playersById,
+    draftedIds,
     onMoveToRound,
-    onSendToPool,
     onResetRound,
     onResetAllRounds,
     compareIds,
@@ -39,8 +39,8 @@ export function RoundsTab({
     roundNumbers: number[]
     positions: string[]
     playersById: Map<string, ScouterPlayer>
-    onMoveToRound: (playerId: string, roundNumber: number) => void
-    onSendToPool: (playerId: string) => void
+    draftedIds: Set<string>
+    onMoveToRound: (playerId: string, roundNumber: number | null) => void
     onResetRound: (roundNumber: number) => void
     onResetAllRounds: () => void
     compareIds: Set<string>
@@ -97,8 +97,8 @@ export function RoundsTab({
                             roundNumbers={roundNumbers}
                             playersById={playersById}
                             selectedPositions={selectedPositions}
+                            draftedIds={draftedIds}
                             onMoveToRound={onMoveToRound}
-                            onSendToPool={onSendToPool}
                             onResetRound={onResetRound}
                             compareIds={compareIds}
                             onToggleCompare={onToggleCompare}

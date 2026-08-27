@@ -13,12 +13,14 @@ function TeamFieldSlotCardComponent({
     teamId,
     slot,
     assignedPlayer,
+    isDrafted,
     onAssignSlot,
     onMarkDrafted,
 }: {
     teamId: string
     slot: RosterSlot
     assignedPlayer: ScouterPlayer | undefined
+    isDrafted: boolean
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
 }) {
@@ -72,7 +74,7 @@ function TeamFieldSlotCardComponent({
                     aria-label="Mark drafted"
                     title="Mark drafted"
                 >
-                    <FlagIcon />
+                    <FlagIcon className={isDrafted ? "fill-primary text-primary" : ""} />
                 </Button>
             </div>
         </div>

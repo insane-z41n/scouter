@@ -23,8 +23,8 @@ function RoundColumnComponent({
     roundNumbers,
     playersById,
     selectedPositions,
+    draftedIds,
     onMoveToRound,
-    onSendToPool,
     onResetRound,
     compareIds,
     onToggleCompare,
@@ -36,8 +36,8 @@ function RoundColumnComponent({
     roundNumbers: number[]
     playersById: Map<string, ScouterPlayer>
     selectedPositions: string[]
-    onMoveToRound: (playerId: string, roundNumber: number) => void
-    onSendToPool: (playerId: string) => void
+    draftedIds: Set<string>
+    onMoveToRound: (playerId: string, roundNumber: number | null) => void
     onResetRound: (roundNumber: number) => void
     compareIds: Set<string>
     onToggleCompare: (playerId: string) => void
@@ -46,7 +46,11 @@ function RoundColumnComponent({
     onMarkDrafted: (playerId: string) => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: roundDropzoneId(round.roundNumber) })
-    const sortedPlayers = [...round.players].sort((a, b) => a.rank - b.rank)
+    // A drafted player keeps their round assignment (so "Reset Drafted"/undraft
+    // can put them right back), but is taken - so they no longer show as an
+    // active pick in the round itself.
+    const activePlayers = round.players.filter((p) => !draftedIds.has(p.playerId))
+    const sortedPlayers = [...activePlayers].sort((a, b) => a.rank - b.rank)
     const itemIds = sortedPlayers.map((p) => roundPlayerDragId(round.roundNumber, p.playerId))
 
     return (
@@ -54,12 +58,12 @@ function RoundColumnComponent({
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">Round {round.roundNumber}</span>
-                    <span className="text-xs text-muted-foreground">{round.players.length}</span>
+                    <span className="text-xs text-muted-foreground">{activePlayers.length}</span>
                 </div>
                 <Button
                     variant="ghost"
                     size="xs"
-                    disabled={round.players.length === 0}
+                    disabled={activePlayers.length === 0}
                     onClick={() => onResetRound(round.roundNumber)}
                 >
                     Reset
@@ -86,7 +90,6 @@ function RoundColumnComponent({
                                 roundNumber={round.roundNumber}
                                 roundNumbers={roundNumbers}
                                 onMoveToRound={onMoveToRound}
-                                onSendToPool={onSendToPool}
                                 compareSelected={compareIds.has(player._id)}
                                 onToggleCompare={onToggleCompare}
                                 teams={teams}

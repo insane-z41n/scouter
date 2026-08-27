@@ -3,7 +3,7 @@ import { getTeamsForBoard } from "@/lib/functions/scouter-service/teams"
 import { getScouterPlayers } from "@/lib/functions/scouter-service/get-players"
 import { BoardView } from "@/components/scouter-components/board/board-view"
 
-export default async function DatabasePage({
+export default async function DraftBoardPage({
     params,
 }: {
     params: Promise<{ boardId: string }>

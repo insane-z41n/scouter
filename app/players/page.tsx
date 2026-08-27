@@ -1,4 +1,4 @@
-"use server"
+export const dynamic = "force-dynamic";
 
 import { getScouterPlayers } from "@/lib/functions/scouter-service/get-players";
 

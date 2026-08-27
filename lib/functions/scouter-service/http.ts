@@ -1,5 +1,7 @@
 import axios from "axios";
-import { getAuthHeader } from "@/lib/auth/session";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getAuthHeader, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
 export async function scouterApiRequest<T>(
     method: "get" | "post" | "patch" | "delete",
@@ -19,6 +21,13 @@ export async function scouterApiRequest<T>(
                 error.response?.status,
                 error.response?.data ?? error.message
             );
+            // Our session token was rejected (expired/invalid) - drop it and send
+            // the user back to the login page instead of surfacing a crash.
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                const cookieStore = await cookies();
+                cookieStore.delete(SESSION_COOKIE_NAME);
+                redirect("/login");
+            }
         }
         throw error;
     }

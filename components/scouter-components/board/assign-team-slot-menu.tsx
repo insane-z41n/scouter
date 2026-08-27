@@ -22,8 +22,11 @@ export function AssignTeamSlotMenu({
     onAssignSlot: (teamId: string, slotId: string, playerId: string) => void
 }) {
     // No manual slot picking - a player always lands on their own position (then
-    // FLEX if eligible, then the bench) on whichever team is chosen.
+    // FLEX if eligible, then the bench) on whichever team is chosen. A team the
+    // player is already rostered on is left out entirely, rather than offered
+    // as a way to double up in another slot.
     const assignments = teams.flatMap((team) => {
+        if (team.slots.some((s) => s.playerId === playerId)) return []
         const slot = findBestOpenSlot(team.slots, playerPosition)
         return slot ? [{ team, slot }] : []
     })
