@@ -11,6 +11,7 @@ import {
     RankedPlayer,
     RosterSlotCount,
     updateDraftBoard,
+    updateDraftedPlayers,
     updateRound,
 } from "@/lib/functions/scouter-service/draft-board";
 
@@ -93,6 +94,26 @@ export function useUpdateRound(boardId: string) {
                           ),
                       }
                     : old
+            );
+        },
+        onError: () => {
+            queryClient.invalidateQueries({ queryKey: ["draft-board", SPORT, boardId] });
+        },
+    });
+}
+
+// Marking/unmarking a player drafted is low-frequency (unlike round drag-and-drop),
+// so this just replaces the whole drafted list and reconciles the cache with the
+// exact array the caller already applied optimistically.
+export function useUpdateDraftedPlayers(boardId: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationKey: ["update-drafted", SPORT, boardId],
+        retry: 2,
+        mutationFn: (draftedPlayerIds: string[]) => updateDraftedPlayers(SPORT, boardId, draftedPlayerIds),
+        onSuccess: (_board, draftedPlayerIds) => {
+            queryClient.setQueryData(["draft-board", SPORT, boardId], (old: DraftBoard | undefined) =>
+                old ? { ...old, draftedPlayerIds } : old
             );
         },
         onError: () => {

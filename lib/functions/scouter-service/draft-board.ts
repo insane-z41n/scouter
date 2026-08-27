@@ -32,6 +32,7 @@ export type DraftBoardSummary = {
 export type DraftBoard = DraftBoardSummary & {
     rosterSlots: RosterSlotCount[];
     rounds: Round[];
+    draftedPlayerIds: string[];
 };
 
 export async function createDraftBoard(
@@ -71,6 +72,18 @@ export async function updateRound(
         "patch",
         `/${sport}/draft-board/${draftBoardId}/rounds/${roundNumber}`,
         { players }
+    );
+}
+
+export async function updateDraftedPlayers(
+    sport: string,
+    draftBoardId: string,
+    draftedPlayerIds: string[]
+): Promise<DraftBoard> {
+    return scouterApiRequest<DraftBoard>(
+        "patch",
+        `/${sport}/draft-board/${draftBoardId}/drafted`,
+        { draftedPlayerIds }
     );
 }
 

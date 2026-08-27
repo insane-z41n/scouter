@@ -23,11 +23,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DraftBoard, Round } from "@/lib/functions/scouter-service/draft-board"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { Team } from "@/lib/functions/scouter-service/teams"
-import { useDraftBoard, useUpdateRound } from "@/lib/hooks/use-draft-boards"
+import { useDraftBoard, useUpdateDraftedPlayers, useUpdateRound } from "@/lib/hooks/use-draft-boards"
 import { useAssignSlotPlayer, useTeamsForBoard } from "@/lib/hooks/use-teams"
 import { usePlayers } from "@/lib/hooks/use-players"
-import { getPlacedPlayerIds } from "@/lib/board/pool"
+import { findPlayerRound, findPlayerTeamSlot, getPlacedPlayerIds } from "@/lib/board/pool"
 import { clearAllRounds, clearRound, getRound, movePlayerToRound, reorderRound } from "@/lib/board/round-ops"
+import { addDraftedPlayer, removeDraftedPlayer } from "@/lib/board/drafted-ops"
 import { getPlayerPositions } from "@/app/players/columns"
 import { parseRoundPlayerDragId } from "./round-player-card"
 import { parseRoundDropzoneId } from "./round-column"
@@ -60,17 +61,30 @@ export function BoardView({
 
     const updateRoundMutation = useUpdateRound(board._id)
     const assignSlotMutation = useAssignSlotPlayer(board._id)
+    const updateDraftedMutation = useUpdateDraftedPlayers(board._id)
 
     const pendingSaves = useIsMutating({
         predicate: (m) => {
             const key = m.options.mutationKey?.[0]
-            return key === "update-round" || key === "assign-slot"
+            return key === "update-round" || key === "assign-slot" || key === "update-drafted"
         },
     })
 
+    // Boards saved before drafted-tracking shipped won't have this field yet -
+    // `.lean()` reads don't backfill schema defaults for already-stored documents.
+    const draftedPlayerIds = useMemo(() => boardData.draftedPlayerIds ?? [], [boardData.draftedPlayerIds])
+
     const playersById = useMemo(() => new Map(players.map((p) => [p._id, p])), [players])
     const placedIds = useMemo(() => getPlacedPlayerIds(boardData.rounds, teams), [boardData.rounds, teams])
-    const poolPlayers = useMemo(() => players.filter((p) => !placedIds.has(p._id)), [players, placedIds])
+    const draftedIdSet = useMemo(() => new Set(draftedPlayerIds), [draftedPlayerIds])
+    const poolPlayers = useMemo(
+        () => players.filter((p) => !placedIds.has(p._id) && !draftedIdSet.has(p._id)),
+        [players, placedIds, draftedIdSet]
+    )
+    const draftedPlayers = useMemo(
+        () => players.filter((p) => draftedIdSet.has(p._id)),
+        [players, draftedIdSet]
+    )
     const roundNumbers = useMemo(
         () => Array.from({ length: boardData.numberOfRounds }, (_, i) => i + 1),
         [boardData.numberOfRounds]
@@ -170,6 +184,53 @@ export function BoardView({
             )
         },
         [queryClient, board._id, assignSlotMutation]
+    )
+
+    const applyDraftedOptimistically = useCallback(
+        (nextDraftedIds: string[]) => {
+            queryClient.setQueryData(["draft-board", SPORT, board._id], (old: DraftBoard | undefined) =>
+                old ? { ...old, draftedPlayerIds: nextDraftedIds } : old
+            )
+        },
+        [queryClient, board._id]
+    )
+
+    const persistDrafted = useCallback(
+        (nextDraftedIds: string[]) => {
+            updateDraftedMutation.mutate(nextDraftedIds, {
+                onError: () => setSaveError("Couldn't save drafted players - try again"),
+                onSuccess: () => setSaveError(null),
+            })
+        },
+        [updateDraftedMutation]
+    )
+
+    // A drafted player was taken in the real draft (by anyone) and can't remain
+    // placed anywhere, so this also clears them out of whatever round or team
+    // slot they currently occupy.
+    const handleMarkDrafted = useCallback(
+        (playerId: string) => {
+            if (findPlayerRound(boardData.rounds, playerId)) {
+                handleMoveToRound(playerId, null)
+            }
+            const teamSlot = findPlayerTeamSlot(teams, playerId)
+            if (teamSlot) {
+                handleAssignSlot(teamSlot.teamId, teamSlot.slotId, null)
+            }
+            const nextDrafted = addDraftedPlayer(draftedPlayerIds, playerId)
+            applyDraftedOptimistically(nextDrafted)
+            persistDrafted(nextDrafted)
+        },
+        [boardData.rounds, draftedPlayerIds, teams, handleMoveToRound, handleAssignSlot, applyDraftedOptimistically, persistDrafted]
+    )
+
+    const handleUnmarkDrafted = useCallback(
+        (playerId: string) => {
+            const nextDrafted = removeDraftedPlayer(draftedPlayerIds, playerId)
+            applyDraftedOptimistically(nextDrafted)
+            persistDrafted(nextDrafted)
+        },
+        [draftedPlayerIds, applyDraftedOptimistically, persistDrafted]
     )
 
     const sensors = useSensors(
@@ -272,9 +333,9 @@ export function BoardView({
                                         teams={teams}
                                         selectedTeamId={selectedTeamId}
                                         onSelectTeamId={setSelectedTeamId}
-                                        poolPlayers={poolPlayers}
                                         playersById={playersById}
                                         onAssignSlot={handleAssignSlot}
+                                        onMarkDrafted={handleMarkDrafted}
                                     />
                                 ) : (
                                     <RoundsTab
@@ -288,6 +349,9 @@ export function BoardView({
                                         onResetAllRounds={handleResetAllRounds}
                                         compareIds={compareIdSet}
                                         onToggleCompare={toggleCompare}
+                                        teams={teams}
+                                        onAssignSlot={handleAssignSlot}
+                                        onMarkDrafted={handleMarkDrafted}
                                     />
                                 )}
                             </div>
@@ -299,10 +363,15 @@ export function BoardView({
                     <ResizablePanel defaultSize={35}>
                         <PlayerPoolPanel
                             poolPlayers={poolPlayers}
+                            draftedPlayers={draftedPlayers}
                             roundNumbers={roundNumbers}
                             onSendToRound={handleMoveToRound}
                             compareIds={compareIdSet}
                             onToggleCompare={toggleCompare}
+                            teams={teams}
+                            onAssignSlot={handleAssignSlot}
+                            onMarkDrafted={handleMarkDrafted}
+                            onUnmarkDrafted={handleUnmarkDrafted}
                         />
                     </ResizablePanel>
                 </ResizablePanelGroup>

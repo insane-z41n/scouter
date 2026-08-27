@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { Round } from "@/lib/functions/scouter-service/draft-board"
+import { Team } from "@/lib/functions/scouter-service/teams"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +31,9 @@ export function RoundsTab({
     onResetAllRounds,
     compareIds,
     onToggleCompare,
+    teams,
+    onAssignSlot,
+    onMarkDrafted,
 }: {
     rounds: Round[]
     roundNumbers: number[]
@@ -41,6 +45,9 @@ export function RoundsTab({
     onResetAllRounds: () => void
     compareIds: Set<string>
     onToggleCompare: (playerId: string) => void
+    teams: Team[]
+    onAssignSlot: (teamId: string, slotId: string, playerId: string) => void
+    onMarkDrafted: (playerId: string) => void
 }) {
     const [selectedPositions, setSelectedPositions] = useState<string[]>([])
     const [resetDialogOpen, setResetDialogOpen] = useState(false)
@@ -95,6 +102,9 @@ export function RoundsTab({
                             onResetRound={onResetRound}
                             compareIds={compareIds}
                             onToggleCompare={onToggleCompare}
+                            teams={teams}
+                            onAssignSlot={onAssignSlot}
+                            onMarkDrafted={onMarkDrafted}
                         />
                     ))}
                 </div>

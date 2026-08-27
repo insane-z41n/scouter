@@ -7,43 +7,40 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { ROSTER_SLOT_POSITIONS } from "@/lib/constants/nfl"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { Team } from "@/lib/functions/scouter-service/teams"
+import { groupSlotsForFormation } from "@/lib/board/roster-formation"
 import { CreateTeamDialog } from "./create-team-dialog"
-import { TeamSlotCard } from "./team-slot-card"
+import { TeamField } from "./team-field"
+import { TeamBenchSidebar } from "./team-bench-sidebar"
 
 export function TeamsTab({
     boardId,
     teams,
     selectedTeamId,
     onSelectTeamId,
-    poolPlayers,
     playersById,
     onAssignSlot,
+    onMarkDrafted,
 }: {
     boardId: string
     teams: Team[]
     selectedTeamId: string | null
     onSelectTeamId: (teamId: string) => void
-    poolPlayers: ScouterPlayer[]
     playersById: Map<string, ScouterPlayer>
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
+    onMarkDrafted: (playerId: string) => void
 }) {
     const selectedTeam = teams.find((t) => t._id === selectedTeamId) ?? teams[0]
-
-    const orderedSlots = selectedTeam
-        ? [...selectedTeam.slots].sort(
-              (a, b) => ROSTER_SLOT_POSITIONS.indexOf(a.position as never) - ROSTER_SLOT_POSITIONS.indexOf(b.position as never)
-          )
-        : []
+    const teamSelectItems = teams.map((team) => ({ value: team._id, label: team.teamName }))
+    const bench = selectedTeam ? groupSlotsForFormation(selectedTeam.slots).bench : []
 
     return (
         <div className="flex h-full flex-col gap-3 p-3">
             <div className="flex items-center gap-2">
                 {teams.length > 0 && (
                     <Select
+                        items={teamSelectItems}
                         value={selectedTeam?._id}
                         onValueChange={(value) => value && onSelectTeamId(value)}
                     >
@@ -65,20 +62,24 @@ export function TeamsTab({
             {!selectedTeam ? (
                 <p className="text-sm text-muted-foreground">No teams yet. Create one to start assigning players.</p>
             ) : (
-                <ScrollArea className="flex-1">
-                    <div className="flex flex-col gap-2 pr-3">
-                        {orderedSlots.map((slot) => (
-                            <TeamSlotCard
-                                key={slot.slotId}
-                                teamId={selectedTeam._id}
-                                slot={slot}
-                                assignedPlayer={slot.playerId ? playersById.get(slot.playerId) : undefined}
-                                poolPlayers={poolPlayers}
-                                onAssignSlot={onAssignSlot}
-                            />
-                        ))}
+                <div className="flex flex-1 gap-4 overflow-hidden">
+                    <div className="flex-1 overflow-auto">
+                        <TeamField
+                            teamId={selectedTeam._id}
+                            slots={selectedTeam.slots}
+                            playersById={playersById}
+                            onAssignSlot={onAssignSlot}
+                            onMarkDrafted={onMarkDrafted}
+                        />
                     </div>
-                </ScrollArea>
+                    <TeamBenchSidebar
+                        teamId={selectedTeam._id}
+                        slots={bench}
+                        playersById={playersById}
+                        onAssignSlot={onAssignSlot}
+                        onMarkDrafted={onMarkDrafted}
+                    />
+                </div>
             )}
         </div>
     )

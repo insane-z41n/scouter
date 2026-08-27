@@ -23,3 +23,13 @@ export function getPlacedPlayerIds(rounds: Round[], teams: Team[]): Set<string> 
 export function findPlayerRound(rounds: Round[], playerId: string): Round | undefined {
     return rounds.find((round) => round.players.some((p) => p.playerId === playerId));
 }
+
+export function findPlayerTeamSlot(teams: Team[], playerId: string): { teamId: string; slotId: string } | undefined {
+    for (const team of teams) {
+        const slot = team.slots.find((s) => s.playerId === playerId);
+        if (slot) {
+            return { teamId: team._id, slotId: slot.slotId };
+        }
+    }
+    return undefined;
+}

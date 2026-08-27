@@ -95,7 +95,7 @@ export type GetColumnsOptions = {
 };
 
 export const getColumns = (players: ScouterPlayer[], positions: string[], options?: GetColumnsOptions) => {
-    const latestPreviousYear = getLatestYearEntry(players[0]?.previousStats);
+    const latestPreviousYear = players.length > 0 ? getLatestYearEntry(players[0].previousStats) : 0;
     const playersById = new Map(players.map((p) => [p._id, p]));
 
     return columnHelper.columns([
@@ -169,7 +169,7 @@ export const getColumns = (players: ScouterPlayer[], positions: string[], option
                   columnHelper.display({
                       id: "actions",
                       header: "ACTIONS",
-                      size: 220,
+                      size: 420,
                       cell: ({ row }) => options.renderRowActions!(row.original.id),
                   }),
               ]

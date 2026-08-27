@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "@/components/ui/button"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { Round } from "@/lib/functions/scouter-service/draft-board"
+import { Team } from "@/lib/functions/scouter-service/teams"
 import { RoundPlayerCard, roundPlayerDragId } from "./round-player-card"
 
 export function roundDropzoneId(roundNumber: number) {
@@ -27,6 +28,9 @@ function RoundColumnComponent({
     onResetRound,
     compareIds,
     onToggleCompare,
+    teams,
+    onAssignSlot,
+    onMarkDrafted,
 }: {
     round: Round
     roundNumbers: number[]
@@ -37,6 +41,9 @@ function RoundColumnComponent({
     onResetRound: (roundNumber: number) => void
     compareIds: Set<string>
     onToggleCompare: (playerId: string) => void
+    teams: Team[]
+    onAssignSlot: (teamId: string, slotId: string, playerId: string) => void
+    onMarkDrafted: (playerId: string) => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: roundDropzoneId(round.roundNumber) })
     const sortedPlayers = [...round.players].sort((a, b) => a.rank - b.rank)
@@ -82,6 +89,9 @@ function RoundColumnComponent({
                                 onSendToPool={onSendToPool}
                                 compareSelected={compareIds.has(player._id)}
                                 onToggleCompare={onToggleCompare}
+                                teams={teams}
+                                onAssignSlot={onAssignSlot}
+                                onMarkDrafted={onMarkDrafted}
                             />
                         )
                     })}

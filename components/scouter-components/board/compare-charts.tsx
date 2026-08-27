@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import {
     ChartConfig,
@@ -8,6 +8,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
 import { STAT_OPTIONS, StatKey } from "@/components/scouter-components/player-stats-chart"
 
@@ -19,21 +20,24 @@ const PLAYER_LINE_COLORS = [
     "var(--chart-5)",
 ]
 
-function playerHasStat(player: ScouterPlayer, stat: StatKey) {
-    return (
-        Object.values(player.previousStats).some((s) => s[stat] != null) ||
-        Object.values(player.projectedStats).some((s) => s[stat] != null)
-    )
+type StatsMode = "projected" | "previous"
+
+const STATS_KEY_BY_MODE = {
+    projected: "projectedStats",
+    previous: "previousStats",
+} as const
+
+function playerHasStat(player: ScouterPlayer, stat: StatKey, mode: StatsMode) {
+    return Object.values(player[STATS_KEY_BY_MODE[mode]]).some((s) => s[stat] != null)
 }
 
-// One row per year, one column per player - previous (actual) years take
-// priority and projected fills in years without actuals, so each player draws
-// as a single continuous line instead of two disconnected series.
-function buildChartData(players: ScouterPlayer[], stat: StatKey) {
+// One row per year, one column per player, drawn from whichever source
+// (projected or previous years) the toggle currently has selected.
+function buildChartData(players: ScouterPlayer[], stat: StatKey, mode: StatsMode) {
+    const statsKey = STATS_KEY_BY_MODE[mode]
     const years = new Set<string>()
     players.forEach((player) => {
-        Object.keys(player.previousStats).forEach((year) => years.add(year))
-        Object.keys(player.projectedStats).forEach((year) => years.add(year))
+        Object.keys(player[statsKey]).forEach((year) => years.add(year))
     })
 
     return Array.from(years)
@@ -41,7 +45,7 @@ function buildChartData(players: ScouterPlayer[], stat: StatKey) {
         .map((year) => {
             const row: Record<string, string | number | null> = { year }
             players.forEach((player) => {
-                row[player._id] = player.previousStats[year]?.[stat] ?? player.projectedStats[year]?.[stat] ?? null
+                row[player._id] = player[statsKey][year]?.[stat] ?? null
             })
             return row
         })
@@ -52,13 +56,15 @@ function StatChart({
     stat,
     label,
     config,
+    mode,
 }: {
     players: ScouterPlayer[]
     stat: StatKey
     label: string
     config: ChartConfig
+    mode: StatsMode
 }) {
-    const chartData = useMemo(() => buildChartData(players, stat), [players, stat])
+    const chartData = useMemo(() => buildChartData(players, stat, mode), [players, stat, mode])
 
     return (
         <div className="flex flex-col gap-1 rounded-md border p-2">
@@ -87,6 +93,8 @@ function StatChart({
 }
 
 export function CompareCharts({ players }: { players: ScouterPlayer[] }) {
+    const [mode, setMode] = useState<StatsMode>("projected")
+
     const config: ChartConfig = useMemo(
         () =>
             Object.fromEntries(
@@ -102,32 +110,42 @@ export function CompareCharts({ players }: { players: ScouterPlayer[] }) {
     )
 
     const availableStats = useMemo(
-        () => STAT_OPTIONS.filter(({ value }) => players.some((player) => playerHasStat(player, value))),
-        [players]
+        () => STAT_OPTIONS.filter(({ value }) => players.some((player) => playerHasStat(player, value, mode))),
+        [players, mode]
     )
-
-    if (availableStats.length === 0) {
-        return <div className="p-4 text-sm text-muted-foreground">No stat data available for these players.</div>
-    }
 
     return (
         <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-4 px-1">
-                {players.map((player, index) => (
-                    <div key={player._id} className="flex items-center gap-1.5 text-sm">
-                        <span
-                            className="size-2.5 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: PLAYER_LINE_COLORS[index % PLAYER_LINE_COLORS.length] }}
-                        />
-                        {player.playerInfo.firstName} {player.playerInfo.lastName}
-                    </div>
-                ))}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+                <div className="flex flex-wrap items-center gap-4">
+                    {players.map((player, index) => (
+                        <div key={player._id} className="flex items-center gap-1.5 text-sm">
+                            <span
+                                className="size-2.5 shrink-0 rounded-[2px]"
+                                style={{ backgroundColor: PLAYER_LINE_COLORS[index % PLAYER_LINE_COLORS.length] }}
+                            />
+                            {player.playerInfo.firstName} {player.playerInfo.lastName}
+                        </div>
+                    ))}
+                </div>
+                <Tabs value={mode} onValueChange={(v) => setMode(v as StatsMode)}>
+                    <TabsList>
+                        <TabsTrigger value="projected">Projections</TabsTrigger>
+                        <TabsTrigger value="previous">Previous Years</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {availableStats.map(({ value, label }) => (
-                    <StatChart key={value} players={players} stat={value} label={label} config={config} />
-                ))}
-            </div>
+            {availableStats.length === 0 ? (
+                <div className="p-4 text-sm text-muted-foreground">
+                    No {mode === "projected" ? "projected" : "previous year"} stat data available for these players.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {availableStats.map(({ value, label }) => (
+                        <StatChart key={value} players={players} stat={value} label={label} config={config} mode={mode} />
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

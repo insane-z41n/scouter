@@ -69,7 +69,13 @@ export function PlayerTable({
     return (
         <div>
             <div>
-                <Table>
+                {/* table-fixed makes every column's declared size authoritative instead of a
+                    mere hint - pinned columns rely on that to compute correct sticky "left"
+                    offsets from the sizes of the columns before them (without it, the browser's
+                    content-based auto-layout can render a column narrower/wider than its
+                    declared size, throwing off later sticky columns and letting a widened
+                    sticky column visually cover the un-pinned column right after it). */}
+                <Table className="table-fixed">
                     {/** Mapping Heders for player table */}
                     <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -80,11 +86,10 @@ export function PlayerTable({
                             <TableHead
                                 key={header.id}
                                 className={isPinned ? "sticky z-20 bg-background" : undefined}
-                                style={
-                                    isPinned
-                                        ? { left: header.column.getStart("start"), width: header.column.getSize() }
-                                        : undefined
-                                }
+                                style={{
+                                    width: header.column.getSize(),
+                                    ...(isPinned ? { left: header.column.getStart("start") } : {}),
+                                }}
                             >
                                 {header.isPlaceholder ? null : (
                                 <table.FlexRender header={header} />
@@ -109,11 +114,10 @@ export function PlayerTable({
                                     <TableCell
                                         key={cell.id}
                                         className={isPinned ? "sticky z-10 bg-background" : undefined}
-                                        style={
-                                            isPinned
-                                                ? { left: cell.column.getStart("start"), width: cell.column.getSize() }
-                                                : undefined
-                                        }
+                                        style={{
+                                            width: cell.column.getSize(),
+                                            ...(isPinned ? { left: cell.column.getStart("start") } : {}),
+                                        }}
                                     >
                                         <table.FlexRender cell={cell} />
                                     </TableCell>

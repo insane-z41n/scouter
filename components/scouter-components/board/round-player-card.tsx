@@ -5,11 +5,14 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
 import { getLatestYearEntry, ScouterPlayer } from "@/lib/functions/scouter-service/get-players"
+import { Team } from "@/lib/functions/scouter-service/teams"
 import { PlayerNameCell } from "@/components/scouter-components/player-stat-card"
 import { RoundSelectMenu } from "./round-select-menu"
 import { CompareToggleButton } from "./compare-toggle-button"
+import { AssignTeamSlotMenu } from "./assign-team-slot-menu"
+import { MarkDraftedButton } from "./mark-drafted-button"
 
-function getPlayerQuickStats(player: ScouterPlayer) {
+export function getPlayerQuickStats(player: ScouterPlayer) {
     const hasProjected = Object.keys(player.projectedStats).length > 0
     const hasPrevious = Object.keys(player.previousStats).length > 0
     const projected = hasProjected ? player.projectedStats[getLatestYearEntry(player.projectedStats)] : null
@@ -41,6 +44,9 @@ function RoundPlayerCardComponent({
     onSendToPool,
     compareSelected,
     onToggleCompare,
+    teams,
+    onAssignSlot,
+    onMarkDrafted,
 }: {
     player: ScouterPlayer
     roundNumber: number
@@ -49,6 +55,9 @@ function RoundPlayerCardComponent({
     onSendToPool: (playerId: string) => void
     compareSelected: boolean
     onToggleCompare: (playerId: string) => void
+    teams: Team[]
+    onAssignSlot: (teamId: string, slotId: string, playerId: string) => void
+    onMarkDrafted: (playerId: string) => void
 }) {
     const dragId = roundPlayerDragId(roundNumber, player._id)
     const {
@@ -116,6 +125,12 @@ function RoundPlayerCardComponent({
             </div>
             <div className="flex items-center gap-2">
                 <CompareToggleButton selected={compareSelected} onToggle={() => onToggleCompare(player._id)} />
+                <AssignTeamSlotMenu
+                    teams={teams}
+                    playerId={player._id}
+                    playerPosition={player.playerInfo.primaryPosition}
+                    onAssignSlot={onAssignSlot}
+                />
                 <RoundSelectMenu
                     roundNumbers={roundNumbers}
                     currentRoundNumber={roundNumber}
@@ -123,6 +138,7 @@ function RoundPlayerCardComponent({
                     onSendToPool={() => onSendToPool(player._id)}
                     triggerLabel="Move"
                 />
+                <MarkDraftedButton onMarkDrafted={() => onMarkDrafted(player._id)} />
             </div>
             {showInsertionLine && insertBelow && (
                 <div className="absolute inset-x-0 -bottom-1 h-0.5 rounded-full bg-primary" />
