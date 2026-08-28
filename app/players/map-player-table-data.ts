@@ -19,6 +19,8 @@ export function mapScouterPlayersToPlayerTableData(players: ScouterPlayer[]): Pl
             team: p.team,
             projectedPoints: projected.fantasyPointsPPR,
             prevYearPoints: previous.fantasyPointsPPR,
+            projectedGamesPlayed: projected.gamesPlayed ?? 0,
+            statsGamesPlayed: previous.gamesPlayed ?? 0,
             projectedPassingAttempts: projected.passingAttempts ?? 0,
             projectedPassingYards: projected.passingYards ?? 0,
             projectedPassingYardsPerAttempt: projected.passingYardsPerAttempt ?? 0,
