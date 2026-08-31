@@ -14,6 +14,7 @@ export function TeamField({
     draftedIds,
     onAssignSlot,
     onMarkDrafted,
+    onUnmarkDrafted,
 }: {
     teamId: string
     slots: RosterSlot[]
@@ -21,6 +22,7 @@ export function TeamField({
     draftedIds: Set<string>
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
+    onUnmarkDrafted: (playerId: string) => void
 }) {
     const formation = groupSlotsForFormation(slots)
     // WR1 lines up with FLEX in the top row; the rest of the WRs drop back to
@@ -39,6 +41,7 @@ export function TeamField({
                 isDrafted={!!assignedPlayer && draftedIds.has(assignedPlayer._id)}
                 onAssignSlot={onAssignSlot}
                 onMarkDrafted={onMarkDrafted}
+                onUnmarkDrafted={onUnmarkDrafted}
             />
         )
     }

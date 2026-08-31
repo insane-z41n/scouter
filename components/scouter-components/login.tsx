@@ -29,12 +29,15 @@ export function Login() {
         const password = formData.get("password") as string;
 
         const result = await login(email, password);
-        setIsSubmitting(false);
 
         if (!result.success) {
+            setIsSubmitting(false);
             setError(result.message);
             return;
         }
+        // Leave isSubmitting true - the button should stay disabled/labeled
+        // "Logging in..." through the redirect instead of flashing back to an
+        // enabled "Login" state while the next page is still loading.
         router.push('/draft-boards');
     }
     const registerOnClickAction = (event: React.MouseEvent<HTMLButtonElement>) => {

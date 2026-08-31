@@ -38,7 +38,7 @@ export function CompareDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogPopup render={<Card />} className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden">
-                <CardHeader className="shrink-0">
+                <CardHeader className="shrink-0 pr-10">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <DialogTitle>Compare Players</DialogTitle>

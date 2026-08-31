@@ -25,6 +25,7 @@ function TeamSlotCardComponent({
     isDrafted,
     onAssignSlot,
     onMarkDrafted,
+    onUnmarkDrafted,
 }: {
     teamId: string
     slot: RosterSlot
@@ -32,6 +33,7 @@ function TeamSlotCardComponent({
     isDrafted: boolean
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
+    onUnmarkDrafted: (playerId: string) => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: teamSlotDropId(teamId, slot.slotId) })
 
@@ -60,9 +62,11 @@ function TeamSlotCardComponent({
                     <Button
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => onMarkDrafted(assignedPlayer._id)}
-                        aria-label="Mark drafted"
-                        title="Mark drafted"
+                        onClick={() =>
+                            isDrafted ? onUnmarkDrafted(assignedPlayer._id) : onMarkDrafted(assignedPlayer._id)
+                        }
+                        aria-label={isDrafted ? "Unmark drafted" : "Mark drafted"}
+                        title={isDrafted ? "Unmark drafted" : "Mark drafted"}
                     >
                         <FlagIcon className={isDrafted ? "fill-primary text-primary" : ""} />
                     </Button>

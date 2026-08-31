@@ -12,6 +12,7 @@ export function TeamBenchSidebar({
     draftedIds,
     onAssignSlot,
     onMarkDrafted,
+    onUnmarkDrafted,
 }: {
     teamId: string
     slots: RosterSlot[]
@@ -19,6 +20,7 @@ export function TeamBenchSidebar({
     draftedIds: Set<string>
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
+    onUnmarkDrafted: (playerId: string) => void
 }) {
     return (
         <div className="flex h-full w-64 shrink-0 flex-col gap-2 overflow-hidden">
@@ -36,6 +38,7 @@ export function TeamBenchSidebar({
                                 isDrafted={!!assignedPlayer && draftedIds.has(assignedPlayer._id)}
                                 onAssignSlot={onAssignSlot}
                                 onMarkDrafted={onMarkDrafted}
+                                onUnmarkDrafted={onUnmarkDrafted}
                             />
                         )
                     })}

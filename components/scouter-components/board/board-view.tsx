@@ -29,8 +29,15 @@ import { Team } from "@/lib/functions/scouter-service/teams"
 import { useDraftBoard, useUpdateDraftedPlayers, useUpdateRound } from "@/lib/hooks/use-draft-boards"
 import { useAssignSlotPlayer, useTeamsForBoard } from "@/lib/hooks/use-teams"
 import { usePlayers } from "@/lib/hooks/use-players"
-import { getPlacedPlayerIds } from "@/lib/board/pool"
-import { clearAllRounds, clearRound, getRound, movePlayerToRound, reorderRound } from "@/lib/board/round-ops"
+import { getPlacedPlayerIds, sortPlayersByAdp } from "@/lib/board/pool"
+import {
+    autoFillRoundsByOrder,
+    clearAllRounds,
+    clearRound,
+    getRound,
+    movePlayerToRound,
+    reorderRound,
+} from "@/lib/board/round-ops"
 import { addDraftedPlayer, removeDraftedPlayer } from "@/lib/board/drafted-ops"
 import { getPlayerPositions } from "@/app/players/columns"
 import { parseRoundPlayerDragId } from "./round-player-card"
@@ -87,6 +94,10 @@ export function BoardView({
     const draftedPlayers = useMemo(
         () => players.filter((p) => draftedIdSet.has(p._id)),
         [players, draftedIdSet]
+    )
+    const poolPlayerIdsByAdp = useMemo(
+        () => sortPlayersByAdp(poolPlayers).map((p) => p._id),
+        [poolPlayers]
     )
     const roundNumbers = useMemo(
         () => Array.from({ length: boardData.numberOfRounds }, (_, i) => i + 1),
@@ -201,6 +212,22 @@ export function BoardView({
         applyRoundsOptimistically(nextRounds)
         persistChangedRounds(nextRounds, changedRoundNumbers)
     }, [boardData.rounds, applyRoundsOptimistically, persistChangedRounds])
+
+    // Tops up each round to maxPerRound with the best remaining pool players by
+    // ADP - never touches a player who's already placed somewhere.
+    const handleAutoFillByAdp = useCallback(
+        (maxPerRound: number) => {
+            const { rounds: nextRounds, changedRoundNumbers } = autoFillRoundsByOrder(
+                boardData.rounds,
+                poolPlayerIdsByAdp,
+                maxPerRound
+            )
+            if (changedRoundNumbers.length === 0) return
+            applyRoundsOptimistically(nextRounds)
+            persistChangedRounds(nextRounds, changedRoundNumbers)
+        },
+        [boardData.rounds, poolPlayerIdsByAdp, applyRoundsOptimistically, persistChangedRounds]
+    )
 
     const handleAssignSlot = useCallback(
         (teamId: string, slotId: string, playerId: string | null) => {
@@ -365,6 +392,7 @@ export function BoardView({
                                         draftedIds={draftedIdSet}
                                         onAssignSlot={handleAssignSlot}
                                         onMarkDrafted={handleMarkDrafted}
+                                        onUnmarkDrafted={handleUnmarkDrafted}
                                         onResetTeam={handleResetTeam}
                                     />
                                 ) : (
@@ -377,6 +405,8 @@ export function BoardView({
                                         onMoveToRound={handleMoveToRound}
                                         onResetRound={handleResetRound}
                                         onResetAllRounds={handleResetAllRounds}
+                                        onAutoFillByAdp={handleAutoFillByAdp}
+                                        autoFillAvailableCount={poolPlayerIdsByAdp.length}
                                         compareIds={compareIdSet}
                                         onToggleCompare={toggleCompare}
                                         teams={teams}

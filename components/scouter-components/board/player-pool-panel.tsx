@@ -60,7 +60,10 @@ export function PlayerPoolPanel({
     const draftedPlayersById = useMemo(() => new Map(draftedPlayers.map((p) => [p._id, p])), [draftedPlayers])
 
     return (
-        <div className="flex h-full flex-col overflow-auto p-2">
+        // pb-16 reserves room below the pagination row so the fixed CompareTray
+        // (bottom-4 right-4, shown once players are selected to compare) doesn't
+        // sit on top of the Previous/Next buttons.
+        <div className="flex h-full flex-col overflow-auto p-2 pb-16">
             <div className="mb-2 flex items-center justify-between px-2">
                 <Tabs value={view} onValueChange={(v) => setView(v as "pool" | "drafted")}>
                     <TabsList>

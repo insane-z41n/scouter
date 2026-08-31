@@ -36,6 +36,7 @@ export function TeamsTab({
     draftedIds,
     onAssignSlot,
     onMarkDrafted,
+    onUnmarkDrafted,
     onResetTeam,
 }: {
     boardId: string
@@ -46,6 +47,7 @@ export function TeamsTab({
     draftedIds: Set<string>
     onAssignSlot: (teamId: string, slotId: string, playerId: string | null) => void
     onMarkDrafted: (playerId: string) => void
+    onUnmarkDrafted: (playerId: string) => void
     onResetTeam: (teamId: string) => void
 }) {
     const [resetDialogOpen, setResetDialogOpen] = useState(false)
@@ -124,6 +126,7 @@ export function TeamsTab({
                             draftedIds={draftedIds}
                             onAssignSlot={onAssignSlot}
                             onMarkDrafted={onMarkDrafted}
+                            onUnmarkDrafted={onUnmarkDrafted}
                         />
                     </div>
                     <TeamBenchSidebar
@@ -133,6 +136,7 @@ export function TeamsTab({
                         draftedIds={draftedIds}
                         onAssignSlot={onAssignSlot}
                         onMarkDrafted={onMarkDrafted}
+                        onUnmarkDrafted={onUnmarkDrafted}
                     />
                 </div>
             )}

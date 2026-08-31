@@ -74,3 +74,40 @@ export function clearAllRounds(rounds: Round[]): { rounds: Round[]; changedRound
     const nextRounds = rounds.map((round) => (round.players.length > 0 ? { ...round, players: [] } : round));
     return { rounds: nextRounds, changedRoundNumbers };
 }
+
+// Tops up each round (in round-number order) to maxPerRound, using players
+// from playerIdsInOrder - which the caller sorts however "best first" means
+// (e.g. ascending ADP). Existing placements are never touched or reordered;
+// a round that's already at or past the max is skipped, and a round with
+// room gets exactly enough of the next players in line to reach it. Stops
+// once the round or the player list runs out, whichever comes first.
+export function autoFillRoundsByOrder(
+    rounds: Round[],
+    playerIdsInOrder: string[],
+    maxPerRound: number
+): { rounds: Round[]; changedRoundNumbers: number[] } {
+    const queue = [...playerIdsInOrder];
+    const updatedByRound = new Map<number, RankedPlayer[]>();
+    const roundNumbersAscending = [...rounds].map((r) => r.roundNumber).sort((a, b) => a - b);
+
+    for (const roundNumber of roundNumbersAscending) {
+        if (queue.length === 0) break;
+        const round = rounds.find((r) => r.roundNumber === roundNumber);
+        if (!round) continue;
+        const room = maxPerRound - round.players.length;
+        if (room <= 0) continue;
+
+        const additions = queue.splice(0, room);
+        if (additions.length === 0) continue;
+
+        let nextRank = round.players.length > 0 ? Math.max(...round.players.map((p) => p.rank)) + 1 : 0;
+        const newPlayers: RankedPlayer[] = additions.map((playerId) => ({ playerId, rank: nextRank++ }));
+        updatedByRound.set(roundNumber, [...round.players, ...newPlayers]);
+    }
+
+    const nextRounds = rounds.map((round) =>
+        updatedByRound.has(round.roundNumber) ? { ...round, players: updatedByRound.get(round.roundNumber)! } : round
+    );
+
+    return { rounds: nextRounds, changedRoundNumbers: Array.from(updatedByRound.keys()) };
+}
