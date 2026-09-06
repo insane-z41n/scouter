@@ -20,7 +20,7 @@ export type ScouterPlayerYearStats = {
     fantasyPointsStandard: number,
     fantasyPointsHalfPPR: number,
     fantasyPointsPPR: number,
-    overallFantasyRankPPR: number,
+    overrallFantasyRankPPR: number,
     positionalFantasyRankPPR: number,
 }
 

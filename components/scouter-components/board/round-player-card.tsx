@@ -21,7 +21,7 @@ export function getPlayerQuickStats(player: ScouterPlayer) {
     return {
         projectedPoints: projected?.fantasyPointsPPR ?? null,
         prevYearPoints: previous?.fantasyPointsPPR ?? null,
-        prevYearOverallRank: previous?.overallFantasyRankPPR ?? null,
+        prevYearOverallRank: previous?.overrallFantasyRankPPR ?? null,
         prevYearPositionalRank: previous?.positionalFantasyRankPPR ?? null,
     }
 }
@@ -113,8 +113,8 @@ function RoundPlayerCardComponent({
                     <span className="shrink-0 truncate text-xs text-muted-foreground">
                         {projectedPoints !== null && <>Proj {projectedPoints.toFixed(1)} pts</>}
                         {prevYearPoints !== null && <> · Prev {prevYearPoints.toFixed(1)} pts</>}
-                        {prevYearOverallRank !== null && <> · Ovr #{prevYearOverallRank}</>}
-                        {prevYearPositionalRank !== null && <> (Pos #{prevYearPositionalRank})</>}
+                        {prevYearOverallRank !== null && <> · Ovr Rank #{prevYearOverallRank}</>}
+                        {prevYearPositionalRank !== null && <> · (Pos Rank #{prevYearPositionalRank})</>}
                     </span>
                 </div>
                 <div className="text-xs text-muted-foreground">
